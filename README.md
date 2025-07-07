@@ -1,15 +1,13 @@
-# Tauri + SvelteKit + TypeScript
-
-This template should help get you started developing with Tauri, SvelteKit and TypeScript in Vite.
-
-## Recommended IDE Setup
-
-[VS Code](https://code.visualstudio.com/) + [Svelte](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer).
-
-## Development
-For Desktop development, run:
-  bun run tauri dev
-
-For Android development, run:
-  bun run tauri android dev
-
+# Raxcel
+## Prerequisites
+- Tauri
+  - [official docs](https://v2.tauri.app/start/prerequisites/)
+- Bun
+  - [official docs](https://bun.sh/docs/installation)
+## Setup
+```sh
+git clone git@github.com:ut-code/Raxcel.git
+cd Raxcel
+bun install
+bun dev
+```
