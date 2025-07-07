@@ -4,4 +4,4 @@ export type Cell = {
   isSelected: boolean;
   value: string;
   isWritable: boolean;
-}
+};

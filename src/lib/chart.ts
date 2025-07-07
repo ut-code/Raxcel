@@ -3,24 +3,26 @@ import { type ChartConfiguration } from "chart.js";
 type Vertex = {
   x: number;
   y: number;
-}
+};
 export function setupPlot(values: number[]): ChartConfiguration {
   const rawData: Vertex[] = [];
   for (let i = 0; i < values.length / 2; i += 1) {
     rawData.push({
       x: values[i],
-      y: values[i + values.length / 2]
-    })
+      y: values[i + values.length / 2],
+    });
   }
   console.log(rawData);
   const data = {
-    datasets: [{
-      label: "Scatter Dataset",
-      data: rawData,
-      backgroundColor: "white",
-      borderColor: "black",
-    }]
-  }
+    datasets: [
+      {
+        label: "Scatter Dataset",
+        data: rawData,
+        backgroundColor: "white",
+        borderColor: "black",
+      },
+    ],
+  };
 
   const config: ChartConfiguration = {
     type: "scatter",
@@ -29,10 +31,10 @@ export function setupPlot(values: number[]): ChartConfiguration {
       scales: {
         x: {
           type: "linear",
-          position: "bottom"
-        }
-      }
-    }
-  }
-  return config
+          position: "bottom",
+        },
+      },
+    },
+  };
+  return config;
 }

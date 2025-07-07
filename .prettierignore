@@ -1,0 +1,7 @@
+# Ignore artifacts:
+build
+coverage
+
+.svelte-kit
+node_modules
+src-tauri
