@@ -1,6 +1,7 @@
 <script lang="ts">
   import { setupPlot } from "$lib/chart";
   import type { Cell as CellType } from "$lib/types.ts";
+  import { clsx } from "clsx";
   import {
     Chart,
     ScatterController,
@@ -88,14 +89,14 @@
   }
 </script>
 
-<div class="grid">
+<div class="flex flex-row">
   {#each grid as row}
-    <div class="row">
+    <div class="flex flex-col">
       {#each row as cell}
         {#if cell.isWritable}
           <input
             type="text"
-            class="cell"
+            class="w-24 h-12 border border-gray-300 box-border cursor-pointer bg-white "
             bind:value={cell.value}
             onchange={(event: Event) => {
               cell.value = (event.target as HTMLInputElement).value;
@@ -109,7 +110,13 @@
           />
         {:else}
           <button
-            class="cell {cell.isSelected ? 'selected' : ''}"
+            class={clsx(
+              "w-24 h-12 border border-gray-300 box-border cursor-pointer ",
+              {
+                "bg-gray-200": cell.isSelected,
+                "bg-white": !cell.isSelected,
+              }
+            )}
             onmousedown={(event) => handleMouseDown(event)}
             onmouseup={(event) => handleMouseUp(event)}
             ondblclick={(event) => {
@@ -126,24 +133,3 @@
 <button onclick={createPlot}>Create Plot</button>
 <div style="width: 500px"><canvas id="chart"></canvas></div>
 
-<style>
-  .grid {
-    display: flex;
-    flex-direction: row;
-  }
-  .row {
-    display: flex;
-    flex-direction: column;
-  }
-  .cell {
-    width: 6em;
-    height: 3em;
-    border: 1px solid #ccc;
-    box-sizing: border-box;
-    cursor: pointer;
-    background-color: white;
-  }
-  .cell.selected {
-    background-color: gray;
-  }
-</style>
