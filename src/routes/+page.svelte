@@ -1,21 +1,11 @@
 <script lang="ts">
-  import { setupPlot } from "$lib/chart";
   import type { Cell as CellType } from "$lib/types.ts";
-  import { clsx } from "clsx";
-  import {
-    Chart,
-    ScatterController,
-    LinearScale,
-    PointElement,
-    Tooltip,
-    Legend,
-  } from "chart.js/auto";
-
-  Chart.register(ScatterController, LinearScale, PointElement, Tooltip, Legend);
+  import Cell from "$lib/components/Cell.svelte";
+  import Chart from "$lib/components/Chart.svelte";
 
   const rows = 10;
   const cols = 10;
-
+  
   let grid: CellType[][] = $state(
     Array.from({ length: rows }, (_, y) =>
       Array.from({ length: cols }, (_, x) => ({
@@ -32,104 +22,76 @@
     const target = event.target as HTMLElement;
     const rowElem = target.parentElement;
     if (!rowElem || !rowElem.parentElement) return null;
-    const rowIndex = Array.from(rowElem.parentElement.children).indexOf(
-      rowElem,
-    );
+    
+    const rowIndex = Array.from(rowElem.parentElement.children).indexOf(rowElem);
     const cellIndex = Array.from(rowElem.children).indexOf(target);
     return grid[rowIndex][cellIndex];
   }
 
   let leftTopCell: CellType | null = $state(null);
+  let isDragging = $state(false);
+
+  function updateSelection(startCell: CellType, endCell: CellType) {
+    // 全てのセルの選択状態をリセット
+    grid.forEach((row) => row.forEach((cell) => (cell.isSelected = false)));
+    
+    // 選択範囲を計算
+    const startX = Math.min(startCell.x, endCell.x);
+    const endX = Math.max(startCell.x, endCell.x);
+    const startY = Math.min(startCell.y, endCell.y);
+    const endY = Math.max(startCell.y, endCell.y);
+    
+    // 選択範囲内のセルを選択状態にする
+    for (let y = startY; y <= endY; y++) {
+      for (let x = startX; x <= endX; x++) {
+        grid[y][x].isSelected = true;
+      }
+    }
+  }
 
   function handleMouseDown(event: MouseEvent) {
     grid.forEach((row) => row.forEach((cell) => (cell.isSelected = false)));
     const cell = convertLocationToCell(event);
     if (cell) {
       leftTopCell = cell;
+      isDragging = true;
+      cell.isSelected = true;
     }
   }
 
-  function handleMouseUp(event: MouseEvent) {
-    const cell = convertLocationToCell(event);
-    if (cell && leftTopCell) {
-      const startX = Math.min(leftTopCell.x, cell.x);
-      const endX = Math.max(leftTopCell.x, cell.x);
-      const startY = Math.min(leftTopCell.y, cell.y);
-      const endY = Math.max(leftTopCell.y, cell.y);
-
-      for (let y = startY; y <= endY; y++) {
-        for (let x = startX; x <= endX; x++) {
-          grid[y][x].isSelected = true;
-        }
+  function handleMouseMove(event: MouseEvent) {
+    if (isDragging && leftTopCell) {
+      const cell = convertLocationToCell(event);
+      if (cell) {
+        updateSelection(leftTopCell, cell);
       }
     }
   }
 
-  let chartInstance: Chart | null = null;
-
-  function createPlot() {
-    const selectedCells = grid.flat().filter((cell) => cell.isSelected);
-    if (selectedCells.length % 2 !== 0) {
-      alert("Please select an even number of cells.");
-      return;
+  function handleMouseUp(event: MouseEvent) {
+    if (isDragging && leftTopCell) {
+      const cell = convertLocationToCell(event);
+      if (cell) {
+        updateSelection(leftTopCell, cell);
+      }
     }
-    console.log("Selected cells:", selectedCells);
-    const values = selectedCells.map((cell) => parseFloat(cell.value));
-    if (values.some((value) => isNaN(value))) {
-      alert("Invalid value in selected cells. Please enter valid numbers.");
-      return;
-    }
-    console.log("Selected values:", values);
-    const ctx = document.getElementById("chart") as HTMLCanvasElement;
-    const config = setupPlot(values);
-    if (chartInstance) {
-      chartInstance.destroy();
-    }
-    chartInstance = new Chart(ctx, config);
+    isDragging = false;
+    leftTopCell = null;
   }
 </script>
 
-<div class="flex flex-row">
+<div class="flex flex-row" onmousemove={handleMouseMove} role="grid" tabindex=0>
   {#each grid as row}
     <div class="flex flex-col">
       {#each row as cell}
-        {#if cell.isWritable}
-          <input
-            type="text"
-            class="w-24 h-12 border border-gray-300 box-border cursor-pointer bg-white "
-            bind:value={cell.value}
-            onchange={(event: Event) => {
-              cell.value = (event.target as HTMLInputElement).value;
-            }}
-            onkeydown={(event: KeyboardEvent) => {
-              if (event.key === "Enter") {
-                cell.isWritable = false;
-                cell.isSelected = false;
-              }
-            }}
-          />
-        {:else}
-          <button
-            class={clsx(
-              "w-24 h-12 border border-gray-300 box-border cursor-pointer ",
-              {
-                "bg-gray-200": cell.isSelected,
-                "bg-white": !cell.isSelected,
-              }
-            )}
-            onmousedown={(event) => handleMouseDown(event)}
-            onmouseup={(event) => handleMouseUp(event)}
-            ondblclick={(event) => {
-              cell.isWritable = true;
-            }}
-          >
-            {cell.value}
-          </button>
-        {/if}
+        <Cell 
+          {cell} 
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
+        />
       {/each}
     </div>
   {/each}
 </div>
-<button onclick={createPlot}>Create Plot</button>
-<div style="width: 500px"><canvas id="chart"></canvas></div>
 
+<Chart {grid} />
