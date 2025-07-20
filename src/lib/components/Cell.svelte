@@ -22,9 +22,6 @@
     class="w-24 h-12 border border-gray-300 box-border cursor-pointer bg-white"
     bind:value={cell.value}
     use:focusInput
-    onchange={(event: Event) => {
-      cell.value = (event.target as HTMLInputElement).value;
-    }}
     onkeydown={(event: KeyboardEvent) => {
       if (event.key === "Enter") {
         cell.isWritable = false;
@@ -43,7 +40,7 @@
     )}
     onmousedown={onMouseDown}
     onmouseup={onMouseUp}
-    ondblclick={() => {
+    onclick={() => {
       cell.isWritable = true;
     }}
   >
