@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Cell as CellType } from "$lib/types.ts";
+  import type { Action } from "svelte/action";
 
   interface Props {
     cell: CellType;
@@ -9,23 +10,36 @@
 
   let { cell, onMouseDown, onMouseUp }: Props = $props();
 
-  function focusInput(node: HTMLInputElement) {
+  const focusInput: Action = (node) => {
     node.focus();
-    node.select(); // テキストを全選択（オプション）
+    if (node instanceof HTMLInputElement) {
+      node.select()
+    }
   }
+
+  const parseRawValue: Action = (_node) => {
+   // Parse here
+    cell.displayValue = cell.rawValue
+  }
+
+// TODO: focus the lower cell when the user clicks Enter
 </script>
 
-{#if cell.isWritable}
+{#if cell.isEditing}
   <input
     type="text"
     class="w-24 h-12 border border-gray-300 box-border cursor-pointer bg-white"
-    bind:value={cell.value}
+    bind:value={cell.rawValue}
     use:focusInput
     onkeydown={(event: KeyboardEvent) => {
       if (event.key === "Enter") {
-        cell.isWritable = false;
+        cell.isEditing = false;
         cell.isSelected = false;
       }
+    }}
+    onblur = {() => {
+      cell.isEditing = false;
+      cell.isSelected = false;
     }}
   />
 {:else}
@@ -38,10 +52,11 @@
     ]}
     onmousedown={onMouseDown}
     onmouseup={onMouseUp}
+    use:parseRawValue
     onclick={() => {
-      cell.isWritable = true;
+      cell.isEditing = true;
     }}
   >
-    {cell.value}
+    {cell.displayValue}
   </button>
 {/if}

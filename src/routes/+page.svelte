@@ -3,6 +3,7 @@
   import Cell from "$lib/components/Cell.svelte";
   import Chart from "$lib/components/Chart.svelte";
 
+  //TODO: virtual scroll
   const rows = 10;
   const cols = 10;
   
@@ -11,25 +12,26 @@
       Array.from({ length: cols }, (_, x) => ({
         x,
         y,
+        rawValue: "",
+        displayValue: "",
         isSelected: false,
-        value: "",
-        isWritable: false,
+        isEditing: false
       })),
     ),
   );
 
-  function convertLocationToCell(event: MouseEvent) {
+  let leftTopCell: CellType | null = $state(null);
+  let isDragging = $state(false);
+  
+  function convertMouseLocToCell(event: MouseEvent) {
     const target = event.target as HTMLElement;
     const rowElem = target.parentElement;
     if (!rowElem || !rowElem.parentElement) return null;
     
-    const rowIndex = Array.from(rowElem.parentElement.children).indexOf(rowElem);
-    const cellIndex = Array.from(rowElem.children).indexOf(target);
-    return grid[rowIndex][cellIndex];
+    const y = Array.from(rowElem.parentElement.children).indexOf(rowElem);
+    const x = Array.from(rowElem.children).indexOf(target);
+    return grid[y][x];
   }
-
-  let leftTopCell: CellType | null = $state(null);
-  let isDragging = $state(false);
 
   function updateSelection(startCell: CellType, endCell: CellType) {
     // 全てのセルの選択状態をリセット
@@ -51,7 +53,7 @@
 
   function handleMouseDown(event: MouseEvent) {
     grid.forEach((row) => row.forEach((cell) => (cell.isSelected = false)));
-    const cell = convertLocationToCell(event);
+    const cell = convertMouseLocToCell(event);
     if (cell) {
       leftTopCell = cell;
       isDragging = true;
@@ -61,7 +63,7 @@
 
   function handleMouseMove(event: MouseEvent) {
     if (isDragging && leftTopCell) {
-      const cell = convertLocationToCell(event);
+      const cell = convertMouseLocToCell(event);
       if (cell) {
         updateSelection(leftTopCell, cell);
       }
@@ -70,7 +72,7 @@
 
   function handleMouseUp(event: MouseEvent) {
     if (isDragging && leftTopCell) {
-      const cell = convertLocationToCell(event);
+      const cell = convertMouseLocToCell(event);
       if (cell) {
         updateSelection(leftTopCell, cell);
       }
