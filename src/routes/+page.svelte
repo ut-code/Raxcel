@@ -80,16 +80,33 @@
     isDragging = false;
     leftTopCell = null;
   }
+
+  function handleEnterPress(x: number, y: number) {
+    grid[y][x].isEditing = false;
+    grid[y][x].isSelected = false;
+
+    const nextY = y + 1;
+    if (nextY < rows) {
+      grid.forEach((row) => row.forEach((cell) => {
+        cell.isSelected = false;
+        cell.isEditing = false;
+      }));
+
+      grid[nextY][x].isSelected = true;
+      grid[nextY][x].isEditing = true;
+    }
+  }
 </script>
 
-<div class="flex flex-row" onmousemove={handleMouseMove} role="grid" tabindex=0>
+<div class="flex flex-col" onmousemove={handleMouseMove} role="grid" tabindex=0>
   {#each grid as row}
-    <div class="flex flex-col">
+    <div class="flex flex-row">
       {#each row as cell}
         <Cell 
           {cell} 
           onMouseDown={handleMouseDown}
           onMouseUp={handleMouseUp}
+          onEnterPress={handleEnterPress}
         />
       {/each}
     </div>
