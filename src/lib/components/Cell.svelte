@@ -1,6 +1,5 @@
 <script lang="ts">
   import type { Cell as CellType } from "$lib/types.ts";
-  import { clsx } from "clsx";
 
   interface Props {
     cell: CellType;
@@ -31,13 +30,12 @@
   />
 {:else}
   <button
-    class={clsx(
+    class={[
       "w-24 h-12 border border-gray-300 box-border cursor-pointer",
-      {
-        "bg-gray-200": cell.isSelected,
-        "bg-white": !cell.isSelected,
-      }
-    )}
+        cell.isSelected ? 
+        "bg-gray-200" : 
+        "bg-white"
+    ]}
     onmousedown={onMouseDown}
     onmouseup={onMouseUp}
     onclick={() => {
