@@ -20,9 +20,16 @@
     ),
   );
 
+  
+
   let leftTopCell: CellType | null = $state(null);
   let isDragging = $state(false);
   
+  let selectedValues: string[] = $derived(
+    grid.flat().filter(cell => cell.isSelected).map(cell => cell.displayValue)
+  )
+  let isDrawing = $state(false)
+
   function convertMouseLocToCell(event: MouseEvent) {
     const target = event.target as HTMLElement;
     const rowElem = target.parentElement;
@@ -113,4 +120,5 @@
   {/each}
 </div>
 
-<Chart {grid} />
+<button onclick={() => isDrawing = true} class="btn btn-neutral">Create Chart</button>
+<Chart {selectedValues} {isDrawing}/>

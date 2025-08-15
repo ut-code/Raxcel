@@ -13,41 +13,50 @@
   Chart.register(ScatterController, LinearScale, PointElement, Tooltip, Legend);
 
   interface Props {
-    grid: CellType[][];
+    selectedValues: string[];
+    isDrawing: boolean;
   }
 
-  let { grid }: Props = $props();
+  let { selectedValues = [], isDrawing = false }: Props = $props();
   let chartInstance: Chart | null = null;
   let canvasRef: HTMLCanvasElement;
 
-  function createPlot() {
-    const selectedCells = grid.flat().filter((cell) => cell.isSelected);
-    
-    if (selectedCells.length % 2 !== 0) {
-      alert("Please select an even number of cells.");
-      return;
+  $effect(() => {
+    const { validatedValues, isValid } = validateValues(selectedValues)
+    if (isDrawing && isValid) {
+      createChart(validatedValues);
     }
-
-    console.log("Selected cells:", selectedCells);
-    const values = selectedCells.map((cell) => parseFloat(cell.value));
-    
-    if (values.some((value) => isNaN(value))) {
-      alert("Invalid value in selected cells. Please enter valid numbers.");
-      return;
+    return () => {
+      if (chartInstance) {
+        chartInstance.destroy();
+      }
     }
+  });
 
-    console.log("Selected values:", values);
-    const config = setupPlot(values);
+  function validateValues(selectedValues: string[]): {
+    validatedValues: number[];
+    isValid: boolean
+  } {
+    //TODO: validation here
+    return {
+      validatedValues: [1, 2, 3, 4],
+      isValid: true,
+    }
+  }
+
+  function createChart(values: number[]) {
+    const config = setupPlot(values)
     
     if (chartInstance) {
       chartInstance.destroy();
     }
-    
-    chartInstance = new Chart(canvasRef, config);
+
+    chartInstance = new Chart(canvasRef, config)
+    isDrawing = false;
   }
+
 </script>
 
-<button onclick={createPlot}>Create Plot</button>
 <div style="w-[500px]">
   <canvas bind:this={canvasRef}></canvas>
 </div>

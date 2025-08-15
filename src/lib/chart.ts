@@ -12,7 +12,6 @@ export function setupPlot(values: number[]): ChartConfiguration {
       y: values[i + values.length / 2],
     });
   }
-  console.log(rawData);
   const data = {
     datasets: [
       {
