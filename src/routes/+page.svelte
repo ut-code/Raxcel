@@ -2,6 +2,7 @@
   import type { Cell as CellType } from "$lib/types.ts";
   import Cell from "$lib/components/Cell.svelte";
   import Chart from "$lib/components/Chart.svelte";
+  import Toolbar from "$lib/components/Toolbar.svelte";
 
   //TODO: virtual scroll
   const rows = 10;
@@ -28,7 +29,7 @@
   let selectedValues: string[] = $derived(
     grid.flat().filter(cell => cell.isSelected).map(cell => cell.displayValue)
   )
-  let chartComponent: Chart | null = null;
+  let chartComponent: Chart | null = $state(null);
 
   function convertMouseLocToCell(event: MouseEvent) {
     const target = event.target as HTMLElement;
@@ -104,16 +105,9 @@
     }
   }
 
-  function handlerCreateChart() {
-    if (chartComponent) {
-      const success = chartComponent.drawChart();
-      if (!success) {
-        alert("select valid numbers")
-      }
-    }
-  }
 </script>
 
+<Toolbar {chartComponent} />
 <div class="flex flex-col" onmousemove={handleMouseMove} role="grid" tabindex=0>
   {#each grid as row, y}
     <div class="flex flex-row">
@@ -129,5 +123,4 @@
   {/each}
 </div>
 
-<button onclick={handlerCreateChart} class="btn btn-neutral">Create Chart</button>
 <Chart {selectedValues} bind:this={chartComponent}/>
