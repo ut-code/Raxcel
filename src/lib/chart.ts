@@ -6,10 +6,11 @@ type Vertex = {
 };
 export function setupPlot(values: number[]): ChartConfiguration {
   const rawData: Vertex[] = [];
-  for (let i = 0; i < values.length / 2; i += 1) {
+  console.log(values);
+  for (let i = 0; i < values.length; i += 2) {
     rawData.push({
       x: values[i],
-      y: values[i + values.length / 2],
+      y: values[i + 1],
     });
   }
   const data = {
