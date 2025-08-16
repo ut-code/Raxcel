@@ -9,7 +9,7 @@
     onEnterPress: (x: number, y: number) => void;
   }
 
-  let { cell, onMouseDown, onMouseUp, onEnterPress }: Props = $props();
+  let { cell = $bindable(), onMouseDown, onMouseUp, onEnterPress }: Props = $props();
 
   const focusInput: Action = (node) => {
     node.focus();

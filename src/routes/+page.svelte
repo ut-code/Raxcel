@@ -106,11 +106,11 @@
 </script>
 
 <div class="flex flex-col" onmousemove={handleMouseMove} role="grid" tabindex=0>
-  {#each grid as row}
+  {#each grid as row, y}
     <div class="flex flex-row">
-      {#each row as cell}
+      {#each row as _cell, x}
         <Cell 
-          {cell} 
+          bind:cell={grid[y][x]} 
           onMouseDown={handleMouseDown}
           onMouseUp={handleMouseUp}
           onEnterPress={handleEnterPress}

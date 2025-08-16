@@ -37,9 +37,17 @@
     validatedValues: number[];
     isValid: boolean
   } {
-    //TODO: validation here
+    const validatedValues = selectedValues.map(value => Number(value));
+    for (const value of validatedValues) {
+        if (isNaN(value)) {
+          return {
+            validatedValues: [],
+            isValid: false,
+          }
+        }
+    }
     return {
-      validatedValues: [1, 2, 3, 4],
+      validatedValues,
       isValid: true,
     }
   }
