@@ -23,7 +23,6 @@
     cell.displayValue = cell.rawValue
   }
 
-// TODO: focus the lower cell when the user clicks Enter
 </script>
 
 {#if cell.isEditing}

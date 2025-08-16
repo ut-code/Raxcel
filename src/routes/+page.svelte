@@ -62,7 +62,7 @@
     overscan: 5,
       })
       columnVirtualizer = createVirtualizer<HTMLDivElement, HTMLDivElement>({
-    count: rowCount,
+    count: colCount,
     getScrollElement: () => virtualListEl,
     estimateSize: () => sheetWidth,
     overscan: 5,
