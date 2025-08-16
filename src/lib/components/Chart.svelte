@@ -14,24 +14,11 @@
 
   interface Props {
     selectedValues: string[];
-    isDrawing: boolean;
   }
 
-  let { selectedValues = [], isDrawing = false }: Props = $props();
+  let { selectedValues = [] }: Props = $props();
   let chartInstance: Chart | null = null;
   let canvasRef: HTMLCanvasElement;
-
-  $effect(() => {
-    const { validatedValues, isValid } = validateValues(selectedValues)
-    if (isDrawing && isValid) {
-      createChart(validatedValues);
-    }
-    return () => {
-      if (chartInstance) {
-        chartInstance.destroy();
-      }
-    }
-  });
 
   function validateValues(selectedValues: string[]): {
     validatedValues: number[];
@@ -52,17 +39,19 @@
     }
   }
 
-  function createChart(values: number[]) {
-    const config = setupPlot(values)
-    
-    if (chartInstance) {
-      chartInstance.destroy();
+  export function drawChart() {
+    const { validatedValues, isValid } = validateValues(selectedValues)
+    if (isValid && validatedValues.length > 0) {
+      if (chartInstance) {
+        chartInstance.destroy();
+        chartInstance = null;
+      }
+      const config = setupPlot(validatedValues)
+      chartInstance = new Chart(canvasRef, config)
+      return true
     }
-
-    chartInstance = new Chart(canvasRef, config)
-    isDrawing = false;
+    return false
   }
-
 </script>
 
 <div style="w-[500px]">

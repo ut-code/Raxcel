@@ -28,7 +28,7 @@
   let selectedValues: string[] = $derived(
     grid.flat().filter(cell => cell.isSelected).map(cell => cell.displayValue)
   )
-  let isDrawing = $state(false)
+  let chartComponent: Chart | null = null;
 
   function convertMouseLocToCell(event: MouseEvent) {
     const target = event.target as HTMLElement;
@@ -103,6 +103,15 @@
       grid[nextY][x].isEditing = true;
     }
   }
+
+  function handlerCreateChart() {
+    if (chartComponent) {
+      const success = chartComponent.drawChart();
+      if (!success) {
+        alert("select valid numbers")
+      }
+    }
+  }
 </script>
 
 <div class="flex flex-col" onmousemove={handleMouseMove} role="grid" tabindex=0>
@@ -120,5 +129,5 @@
   {/each}
 </div>
 
-<button onclick={() => isDrawing = true} class="btn btn-neutral">Create Chart</button>
-<Chart {selectedValues} {isDrawing}/>
+<button onclick={handlerCreateChart} class="btn btn-neutral">Create Chart</button>
+<Chart {selectedValues} bind:this={chartComponent}/>
