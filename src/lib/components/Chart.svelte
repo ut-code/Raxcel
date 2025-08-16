@@ -20,6 +20,8 @@
   let chartInstance: Chart | null = null;
   let canvasRef: HTMLCanvasElement;
 
+  let dialogRef: HTMLDialogElement;
+
   function validateValues(selectedValues: string[]): {
     validatedValues: number[];
     isValid: boolean
@@ -47,6 +49,7 @@
         chartInstance = null;
       }
       const config = setupPlot(validatedValues)
+      dialogRef.showModal()
       chartInstance = new Chart(canvasRef, config)
       return true
     }
@@ -54,6 +57,11 @@
   }
 </script>
 
-<div style="w-[500px]">
-  <canvas bind:this={canvasRef}></canvas>
-</div>
+<dialog class="modal" bind:this={dialogRef}>
+  <div class="relative h-96 w-128">
+    <form method="dialog">
+        <button class="btn">Close</button>
+    </form>
+  <canvas bind:this={canvasRef} class="bg-white"></canvas>
+  </div>
+</dialog>
