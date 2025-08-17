@@ -4,19 +4,19 @@
   import Chart from "$lib/components/Chart.svelte";
   import Toolbar from "$lib/components/Toolbar.svelte";
   import { createVirtualizer, type SvelteVirtualizer } from "@tanstack/svelte-virtual";
-  import { SvelteMap, SvelteSet } from "svelte/reactivity";
+  import { SvelteSet } from "svelte/reactivity";
   import { type Readable } from "svelte/store";
 
   const rowCount = 1000;
   const colCount = 1000;
-  const sheetHeight = 20;
-  const sheetWidth = 20;
+  const sheetHeight = 32;
+  const sheetWidth = 100;
 
-  let cellData = new SvelteMap<string, CellType>();
+  let cellData = $state<Record<string, CellType>>({});
 
   function getCell(x: number, y: number): CellType {
     const key = `${x}-${y}`;
-    let cell = cellData.get(key);
+    let cell = cellData[key];
     if (!cell){
      cell = {
        x,
@@ -26,14 +26,14 @@
        isSelected: false,
        isEditing: false,
      }
-      cellData.set(key, cell)
+      cellData[key] = cell;
     }
     return cell
   }
 
   function setCell(x: number, y: number, newCell: CellType) {
     const key=`${x}-${y}`;
-    cellData.set(key,newCell);
+    cellData[key] = newCell;
   }
 
   let leftTopCell: CellType | null = $state(null);
@@ -42,7 +42,7 @@
   let selectedCells = new SvelteSet<string>();
   let selectedValues: string[] = $derived(
     Array.from(selectedCells).map(key => {
-      const cell = cellData.get(key);
+      const cell = cellData[key];
       return cell?.displayValue || "";
     }).filter(val => val !== "")
   )
@@ -87,7 +87,7 @@
 
   function updateSelection(startCell: CellType, endCell: CellType) {
     selectedCells.clear()    
-    for (const [_key, cell] of cellData) {
+    for (const cell of Object.values(cellData)) {
       cell.isSelected = false
     }
 
@@ -108,7 +108,7 @@
 
   function handleMouseDown(event: MouseEvent) {
     selectedCells.clear()
-    for (const [_key, cell] of cellData) {
+    for (const cell of Object.values(cellData)) {
       cell.isSelected = false;
     }
 
@@ -149,7 +149,7 @@
 
     const nextY = y + 1;
     if (nextY < rowCount) {
-      for (const [_key, cell] of cellData) {
+      for (const cell of Object.values(cellData)) {
         cell.isSelected = false;
         cell.isEditing = false;
       }

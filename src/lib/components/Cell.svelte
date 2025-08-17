@@ -28,7 +28,7 @@
 {#if cell.isEditing}
   <input
     type="text"
-    class="w-24 h-12 border border-gray-300 box-border cursor-pointer bg-white"
+    class="w-full h-full border border-gray-300 box-border cursor-pointer bg-white"
     bind:value={cell.rawValue}
     use:focusInput
     onkeydown={(event: KeyboardEvent) => {
@@ -46,7 +46,7 @@
 {:else}
   <button
     class={[
-      "w-24 h-12 border border-gray-300 box-border cursor-pointer flex-shrink-0",
+      "w-full h-full border border-gray-300 box-border cursor-pointer flex-shrink-0",
         cell.isSelected ? 
         "bg-gray-200" : 
         "bg-white"
