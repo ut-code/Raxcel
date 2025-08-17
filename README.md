@@ -4,6 +4,7 @@
 
 - Tauri
 - Bun
+
 ## Setup
 
 ```sh

@@ -13,41 +13,55 @@
   Chart.register(ScatterController, LinearScale, PointElement, Tooltip, Legend);
 
   interface Props {
-    grid: CellType[][];
+    selectedValues: string[];
   }
 
-  let { grid }: Props = $props();
+  let { selectedValues = [] }: Props = $props();
   let chartInstance: Chart | null = null;
   let canvasRef: HTMLCanvasElement;
 
-  function createPlot() {
-    const selectedCells = grid.flat().filter((cell) => cell.isSelected);
-    
-    if (selectedCells.length % 2 !== 0) {
-      alert("Please select an even number of cells.");
-      return;
-    }
+  let dialogRef: HTMLDialogElement;
 
-    console.log("Selected cells:", selectedCells);
-    const values = selectedCells.map((cell) => parseFloat(cell.value));
-    
-    if (values.some((value) => isNaN(value))) {
-      alert("Invalid value in selected cells. Please enter valid numbers.");
-      return;
+  function validateValues(selectedValues: string[]): {
+    validatedValues: number[];
+    isValid: boolean
+  } {
+    const validatedValues = selectedValues.map(value => Number(value));
+    for (const value of validatedValues) {
+        if (isNaN(value)) {
+          return {
+            validatedValues: [],
+            isValid: false,
+          }
+        }
     }
+    return {
+      validatedValues,
+      isValid: true,
+    }
+  }
 
-    console.log("Selected values:", values);
-    const config = setupPlot(values);
-    
-    if (chartInstance) {
-      chartInstance.destroy();
+  export function drawChart() {
+    const { validatedValues, isValid } = validateValues(selectedValues)
+    if (isValid && validatedValues.length > 0) {
+      if (chartInstance) {
+        chartInstance.destroy();
+        chartInstance = null;
+      }
+      const config = setupPlot(validatedValues)
+      dialogRef.showModal()
+      chartInstance = new Chart(canvasRef, config)
+      return true
     }
-    
-    chartInstance = new Chart(canvasRef, config);
+    return false
   }
 </script>
 
-<button onclick={createPlot}>Create Plot</button>
-<div style="w-[500px]">
-  <canvas bind:this={canvasRef}></canvas>
-</div>
+<dialog class="modal" bind:this={dialogRef}>
+  <div class="relative h-96 w-128">
+    <form method="dialog">
+        <button class="btn">Close</button>
+    </form>
+  <canvas bind:this={canvasRef} class="bg-white"></canvas>
+  </div>
+</dialog>
