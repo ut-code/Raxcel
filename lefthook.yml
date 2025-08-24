@@ -1,6 +1,5 @@
 pre-commit:
   commands:
     format:
-      glob: "*"
-      run: bunx prettier . --write
-      staged_fixed: true
+      glod: "*.{js, ts, svelte, json}"
+      run: bunx prettier --write {staged_files} && git add {staged_files}
