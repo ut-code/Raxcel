@@ -1,0 +1,6 @@
+pre-commit:
+  commands:
+    format:
+      glob: "*"
+      run: bunx prettier . --write
+      staged_fixed: true
