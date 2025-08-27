@@ -161,6 +161,17 @@
     }
   }
 
+  function handleDelete() {
+  for (const key of selectedCells) {
+    const cell = cellData[key];
+    if (cell) {
+      cell.displayValue = "";
+    }
+  }
+
+}
+
+
 </script>
 
 <Toolbar {chartComponent} />
