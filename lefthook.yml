@@ -1,5 +1,5 @@
 pre-commit:
   commands:
     format:
-      glod: "*.{js, ts, svelte, json}"
+      glob: "*.{js, ts, svelte, json}"
       run: bunx prettier --write {staged_files} && git add {staged_files}
