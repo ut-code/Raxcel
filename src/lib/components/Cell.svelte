@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Cell as CellType } from "$lib/types.ts";
   import type { Action } from "svelte/action";
+  import { evaluate } from "mathjs"
 
   interface Props {
     cell: CellType;
@@ -19,8 +20,15 @@
   }
 
   const parseRawValue: Action = (_node) => {
-   // Parse here
-    cell.displayValue = cell.rawValue
+    if (cell.rawValue[0] === "=") {
+      try {
+        cell.displayValue = evaluate(cell.rawValue.slice(1));
+      } catch (error) {
+        cell.displayValue = "#ERROR";
+      }
+    } else {
+      cell.displayValue = cell.rawValue;
+    }
   }
 
 </script>
