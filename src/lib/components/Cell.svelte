@@ -2,15 +2,17 @@
   import type { Cell as CellType } from "$lib/types.ts";
   import type { Action } from "svelte/action";
   import { evaluate } from "mathjs"
+  import { resolveCellReference } from "$lib/formula";
 
   interface Props {
     cell: CellType;
+    grid: Record<string, CellType>
     onMouseDown: (event: MouseEvent) => void;
     onMouseUp: (event: MouseEvent) => void;
     onEnterPress: (x: number, y: number) => void;
   }
 
-  let { cell = $bindable(), onMouseDown, onMouseUp, onEnterPress }: Props = $props();
+  let { cell = $bindable(), grid, onMouseDown, onMouseUp, onEnterPress }: Props = $props();
 
   const focusInput: Action = (node) => {
     node.focus();
@@ -22,7 +24,9 @@
   const parseRawValue: Action = (_node) => {
     if (cell.rawValue[0] === "=") {
       try {
-        cell.displayValue = evaluate(cell.rawValue.slice(1));
+      const formula = cell.rawValue.slice(1);
+      const resolvedFormula = resolveCellReference(formula, grid)
+      cell.displayValue = evaluate(resolvedFormula);
       } catch (error) {
         cell.displayValue = "#ERROR";
       }

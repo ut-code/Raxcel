@@ -192,6 +192,7 @@
             () => getCell(col.index, row.index),
             (newCell) => setCell(col.index, row.index, newCell)
           } 
+          grid={cellData}
           onMouseDown={handleMouseDown}
           onMouseUp={handleMouseUp}
           onEnterPress={handleEnterPress}
