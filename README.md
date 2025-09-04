@@ -2,8 +2,8 @@
 
 ## Prerequisites
 
-- Tauri
-- Bun
+- Tauri >= 2.0
+- Bun >= 1.2
 
 ## Setup
 
