@@ -2,7 +2,7 @@
   import type { Cell as CellType } from "$lib/types.ts";
   import type { Action } from "svelte/action";
   import { evaluate } from "mathjs"
-  import { resolveCellReference } from "$lib/formula";
+  import { resolveAll } from "$lib/formula";
 
   interface Props {
     cell: CellType;
@@ -25,7 +25,7 @@
     if (cell.rawValue[0] === "=") {
       try {
       const formula = cell.rawValue.slice(1);
-      const resolvedFormula = resolveCellReference(formula, grid)
+      const resolvedFormula = resolveAll(formula, grid)
       cell.displayValue = evaluate(resolvedFormula);
       } catch (error) {
         cell.displayValue = "#ERROR";
