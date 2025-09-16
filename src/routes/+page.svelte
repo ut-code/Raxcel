@@ -9,14 +9,53 @@
 
   const rowCount = 1000;
   const colCount = 1000;
-  const sheetHeight = 32;
-  const sheetWidth = 100;
+  const cellHeight = 40;
+  const cellWidth = 100;
 
-  let cellData = $state<Record<string, CellType>>({});
+  // global state
+  let grid = $state<Record<string, CellType>>({});
+  
+  // to select cells
+  let leftTopCell: CellType | null = $state(null);
+  let isDragging = $state(false);
+  let selectedCells = new SvelteSet<string>();
+  let selectedValues: string[] = $derived(
+    Array.from(selectedCells).map(key => {
+      const cell = grid[key];
+      return cell?.displayValue || "";
+    }).filter(val => val !== "")
+  )
 
+  // to show the graph
+  let chartComponent: Chart | null = $state(null);
+
+  // virtual scroll
+  let virtualListEl: HTMLDivElement;
+  let rowVirtualizer: Readable<SvelteVirtualizer<HTMLDivElement, HTMLDivElement>> | undefined = $state()
+  let columnVirtualizer: Readable<SvelteVirtualizer<HTMLDivElement, HTMLDivElement>> | undefined =  $state()
+
+  $effect(() => {
+    if (virtualListEl) {
+      rowVirtualizer = createVirtualizer<HTMLDivElement, HTMLDivElement>({
+    count: rowCount,
+    getScrollElement: () => virtualListEl,
+    estimateSize: () => cellHeight,
+    overscan: 5,
+      })
+      columnVirtualizer = createVirtualizer<HTMLDivElement, HTMLDivElement>({
+    count: colCount,
+    getScrollElement: () => virtualListEl,
+    estimateSize: () => cellWidth,
+    overscan: 5,
+    horizontal: true
+      })
+    }
+  })
+  
+  // cell utility
   function getCell(x: number, y: number): CellType {
     const key = `${x}-${y}`;
-    let cell = cellData[key];
+    let cell = grid[key];
     if (!cell){
      cell = {
        x,
@@ -26,68 +65,35 @@
        isSelected: false,
        isEditing: false,
      }
-      cellData[key] = cell;
+      grid[key] = cell;
     }
     return cell
   }
 
-  function setCell(x: number, y: number, newCell: CellType) {
-    const key=`${x}-${y}`;
-    cellData[key] = newCell;
+  function setCell(newCell: CellType) {
+    const key=`${newCell.x}-${newCell.y}`;
+    grid[key] = newCell;
   }
-
-  let leftTopCell: CellType | null = $state(null);
-  let isDragging = $state(false);
-
-  let selectedCells = new SvelteSet<string>();
-  let selectedValues: string[] = $derived(
-    Array.from(selectedCells).map(key => {
-      const cell = cellData[key];
-      return cell?.displayValue || "";
-    }).filter(val => val !== "")
-  )
-
-  let chartComponent: Chart | null = $state(null);
-  let virtualListEl: HTMLDivElement;
-
-  let rowVirtualizer: Readable<SvelteVirtualizer<HTMLDivElement, HTMLDivElement>> | undefined = $state()
-  let columnVirtualizer: Readable<SvelteVirtualizer<HTMLDivElement, HTMLDivElement>> | undefined =  $state()
-
-  $effect(() => {
-    if (virtualListEl) {
-      rowVirtualizer = createVirtualizer<HTMLDivElement, HTMLDivElement>({
-    count: rowCount,
-    getScrollElement: () => virtualListEl,
-    estimateSize: () => sheetHeight,
-    overscan: 5,
-      })
-      columnVirtualizer = createVirtualizer<HTMLDivElement, HTMLDivElement>({
-    count: colCount,
-    getScrollElement: () => virtualListEl,
-    estimateSize: () => sheetWidth,
-    overscan: 5,
-    horizontal: true
-      })
-    }
-  })
 
   function getCellKey(x: number, y: number): string {
     return `${x}-${y}`
   }
 
   function convertMouseLocToCell(event: MouseEvent) : CellType | null{
+    //TODO: what is going on here?
     const target = event.target as HTMLElement;
     const cellEl = target.closest("[data-cell-coords]")
     if (!cellEl) return null;
     const coords = cellEl.getAttribute("data-cell-coords")
     if (!coords) return null;
     const [x, y] = coords.split("-").map(Number)
+    //TODO: fix type error
     return getCell(x, y)
   }
 
   function updateSelection(startCell: CellType, endCell: CellType) {
     selectedCells.clear()    
-    for (const cell of Object.values(cellData)) {
+    for (const cell of Object.values(grid)) {
       cell.isSelected = false
     }
 
@@ -108,7 +114,7 @@
 
   function handleMouseDown(event: MouseEvent) {
     selectedCells.clear()
-    for (const cell of Object.values(cellData)) {
+    for (const cell of Object.values(grid)) {
       cell.isSelected = false;
     }
 
@@ -141,6 +147,7 @@
     leftTopCell = null;
   }
 
+  //TODO: why handleEnterPress takes number argument??
   function handleEnterPress(x: number, y: number) {
     const currentCell = getCell(x, y);
     currentCell.isEditing = false;
@@ -149,7 +156,7 @@
 
     const nextY = y + 1;
     if (nextY < rowCount) {
-      for (const cell of Object.values(cellData)) {
+      for (const cell of Object.values(grid)) {
         cell.isSelected = false;
         cell.isEditing = false;
       }
@@ -190,9 +197,9 @@
          <Cell 
           bind:cell={
             () => getCell(col.index, row.index),
-            (newCell) => setCell(col.index, row.index, newCell)
+            (cell) => setCell(cell)
           } 
-          grid={cellData}
+          grid={grid}
           onMouseDown={handleMouseDown}
           onMouseUp={handleMouseUp}
           onEnterPress={handleEnterPress}
