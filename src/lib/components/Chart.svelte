@@ -1,6 +1,6 @@
 <script lang="ts">
   import { setupPlot } from "$lib/chart";
-  import type { Cell as CellType } from "$lib/types.ts";
+  import type { CellPosition, CellState } from "$lib/types.ts";
   import {
     Chart,
     ScatterController,
@@ -13,10 +13,10 @@
   Chart.register(ScatterController, LinearScale, PointElement, Tooltip, Legend);
 
   interface Props {
-    selectedValues: string[];
+    sheetData: Map<CellPosition, CellState>;
   }
 
-  let { selectedValues = [] }: Props = $props();
+  let { sheetData }: Props = $props();
   let chartInstance: Chart | null = null;
   let canvasRef: HTMLCanvasElement;
 

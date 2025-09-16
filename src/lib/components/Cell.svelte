@@ -1,18 +1,19 @@
 <script lang="ts">
-  import type { Cell as CellType } from "$lib/types.ts";
+  import type { CellPosition, CellState } from "$lib/types.ts";
   import type { Action } from "svelte/action";
   import { evaluate } from "mathjs"
   import { resolveAll } from "$lib/formula";
 
   interface Props {
-    cell: CellType;
-    grid: Record<string, CellType>
+    state: CellState;
+    pos: CellPosition;
+    sheetData: Map<CellPosition, CellState>
     onMouseDown: (event: MouseEvent) => void;
     onMouseUp: (event: MouseEvent) => void;
     onEnterPress: (x: number, y: number) => void;
   }
 
-  let { cell = $bindable(), grid, onMouseDown, onMouseUp, onEnterPress }: Props = $props();
+  let { state = $bindable(), pos, sheetData,  onMouseDown, onMouseUp, onEnterPress }: Props = $props();
 
   const focusInput: Action = (node) => {
     node.focus();
@@ -22,44 +23,44 @@
   }
 
   const parseRawValue: Action = (_node) => {
-    if (cell.rawValue[0] === "=") {
+    if (state.rawValue[0] === "=") {
       try {
-      const formula = cell.rawValue.slice(1);
-      const resolvedFormula = resolveAll(formula, grid)
-      cell.displayValue = evaluate(resolvedFormula);
+      const formula = state.rawValue.slice(1);
+      const resolvedFormula = resolveAll(formula, sheetData)
+      state.displayValue = evaluate(resolvedFormula);
       } catch (error) {
-        cell.displayValue = "#ERROR";
+        state.displayValue = "#ERROR";
       }
     } else {
-      cell.displayValue = cell.rawValue;
+      state.displayValue = state.rawValue;
     }
   }
 
 </script>
 
-{#if cell.isEditing}
+{#if state.isEditing}
   <input
     type="text"
     class="w-full h-full border border-gray-300 box-border cursor-pointer bg-white"
-    bind:value={cell.rawValue}
+    bind:value={state.rawValue}
     use:focusInput
     onkeydown={(event: KeyboardEvent) => {
       if (event.key === "Enter") {
         // cell.isEditing = false;
         // cell.isSelected = false;
-        onEnterPress(cell.x, cell.y);
+        onEnterPress(pos.x, pos.y);
       }
     }}
     onblur = {() => {
-      cell.isEditing = false;
-      cell.isSelected = false;
+      state.isEditing = false;
+      state.isSelected = false;
     }}
   />
 {:else}
   <button
     class={[
       "w-full h-full border border-gray-300 box-border cursor-pointer flex-shrink-0",
-        cell.isSelected ? 
+        state.isSelected ? 
         "bg-gray-200" : 
         "bg-white"
     ]}
@@ -67,9 +68,9 @@
     onmouseup={onMouseUp}
     use:parseRawValue
     onclick={() => {
-      cell.isEditing = true;
+      state.isEditing = true;
     }}
   >
-    {cell.displayValue}
+    {state.displayValue}
   </button>
 {/if}

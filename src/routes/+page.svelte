@@ -1,55 +1,30 @@
 <script lang="ts">
-  import type { Cell as CellType } from "$lib/types.ts";
+  import type { CellState, CellPosition} from "$lib/types.ts";
   import Cell from "$lib/components/Cell.svelte";
   import Chart from "$lib/components/Chart.svelte";
   import Toolbar from "$lib/components/Toolbar.svelte";
   import { createVirtualizer, type SvelteVirtualizer } from "@tanstack/svelte-virtual";
-  import { SvelteSet } from "svelte/reactivity";
+  import { SvelteMap, SvelteSet } from "svelte/reactivity";
   import { type Readable } from "svelte/store";
 
   const rowCount = 1000;
   const colCount = 1000;
-  const sheetHeight = 32;
-  const sheetWidth = 100;
+  const cellHeight = 32;
+  const cellWidth = 100;
 
-  let cellData = $state<Record<string, CellType>>({});
+  // Glocal State. This is everything.
+  let sheetData = new SvelteMap<CellPosition, CellState>();
 
-  function getCell(x: number, y: number): CellType {
-    const key = `${x}-${y}`;
-    let cell = cellData[key];
-    if (!cell){
-     cell = {
-       x,
-       y,
-       rawValue: "",
-       displayValue: "",
-       isSelected: false,
-       isEditing: false,
-     }
-      cellData[key] = cell;
-    }
-    return cell
-  }
-
-  function setCell(x: number, y: number, newCell: CellType) {
-    const key=`${x}-${y}`;
-    cellData[key] = newCell;
-  }
-
-  let leftTopCell: CellType | null = $state(null);
+  // To select cells
+  let leftTopPos: CellPosition | null = $state(null);
   let isDragging = $state(false);
+  let selectedPoss = new SvelteSet<CellPosition>();
 
-  let selectedCells = new SvelteSet<string>();
-  let selectedValues: string[] = $derived(
-    Array.from(selectedCells).map(key => {
-      const cell = cellData[key];
-      return cell?.displayValue || "";
-    }).filter(val => val !== "")
-  )
-
+  // chart
   let chartComponent: Chart | null = $state(null);
-  let virtualListEl: HTMLDivElement;
 
+  // For virtual scroll
+  let virtualListEl: HTMLDivElement;
   let rowVirtualizer: Readable<SvelteVirtualizer<HTMLDivElement, HTMLDivElement>> | undefined = $state()
   let columnVirtualizer: Readable<SvelteVirtualizer<HTMLDivElement, HTMLDivElement>> | undefined =  $state()
 
@@ -58,106 +33,122 @@
       rowVirtualizer = createVirtualizer<HTMLDivElement, HTMLDivElement>({
     count: rowCount,
     getScrollElement: () => virtualListEl,
-    estimateSize: () => sheetHeight,
+    estimateSize: () => cellHeight,
     overscan: 5,
       })
       columnVirtualizer = createVirtualizer<HTMLDivElement, HTMLDivElement>({
     count: colCount,
     getScrollElement: () => virtualListEl,
-    estimateSize: () => sheetWidth,
+    estimateSize: () => cellWidth,
     overscan: 5,
     horizontal: true
       })
     }
   })
 
-  function getCellKey(x: number, y: number): string {
-    return `${x}-${y}`
+  function convertMousePosToCellPos(event: MouseEvent) : CellPosition | null{
+    //TODO: write here
+    // This is a mock data.
+    const pos: CellPosition = {
+      x: 1,
+      y: 1,
+    }
+    return pos
   }
 
-  function convertMouseLocToCell(event: MouseEvent) : CellType | null{
-    const target = event.target as HTMLElement;
-    const cellEl = target.closest("[data-cell-coords]")
-    if (!cellEl) return null;
-    const coords = cellEl.getAttribute("data-cell-coords")
-    if (!coords) return null;
-    const [x, y] = coords.split("-").map(Number)
-    return getCell(x, y)
-  }
-
-  function updateSelection(startCell: CellType, endCell: CellType) {
-    selectedCells.clear()    
-    for (const cell of Object.values(cellData)) {
-      cell.isSelected = false
+  function updateSelection(startPos: CellPosition, endPos: CellPosition) {
+    selectedPoss.clear()    
+    for (const state of sheetData.values()) {
+    //TODO: is this the right way to update SvelteMap?
+      state.isSelected = false
     }
 
-    const startX = Math.min(startCell.x, endCell.x);
-    const endX = Math.max(startCell.x, endCell.x);
-    const startY = Math.min(startCell.y, endCell.y);
-    const endY = Math.max(startCell.y, endCell.y);
+    const startX = Math.min(startPos.x, endPos.x);
+    const endX = Math.max(startPos.x, endPos.x);
+    const startY = Math.min(startPos.y, endPos.y);
+    const endY = Math.max(startPos.y, endPos.y);
     
     for (let y = startY; y <= endY; y++) {
       for (let x = startX; x <= endX; x++) {
-        const key = getCellKey(x, y);
-        selectedCells.add(key);
-        const cell = getCell(x, y);
-        cell.isSelected = true
+        const key: CellPosition = {x, y};
+        selectedPoss.add(key);
+        const cell = sheetData.get(key);
+        if (cell) {
+          const newCellState: CellState = {...cell, isSelected: true};
+          sheetData.set(key, newCellState);
+        }
       }
     }
   }
 
   function handleMouseDown(event: MouseEvent) {
-    selectedCells.clear()
-    for (const cell of Object.values(cellData)) {
-      cell.isSelected = false;
+    selectedPoss.clear()
+    for (const state of sheetData.values()) {
+      state.isSelected = false;
     }
 
-    const cell = convertMouseLocToCell(event);
-    if (cell) {
-      leftTopCell = cell;
+    const pos = convertMousePosToCellPos(event);
+    if (pos) {
+      leftTopPos = pos;
       isDragging = true;
-      cell.isSelected = true;
-      selectedCells.add(getCellKey(cell.x, cell.y))
+      const state = sheetData.get(pos);
+      if (state) {
+        sheetData.set(pos, {
+          ...state,
+          isSelected: true
+        })
+      }
+      selectedPoss.add(pos)
     }
   }
 
   function handleMouseMove(event: MouseEvent) {
-    if (isDragging && leftTopCell) {
-      const cell = convertMouseLocToCell(event);
-      if (cell) {
-        updateSelection(leftTopCell, cell);
+    if (isDragging && leftTopPos) {
+      const pos = convertMousePosToCellPos(event);
+      if (pos) {
+        updateSelection(leftTopPos, pos);
       }
     }
   }
 
   function handleMouseUp(event: MouseEvent) {
-    if (isDragging && leftTopCell) {
-      const cell = convertMouseLocToCell(event);
-      if (cell) {
-        updateSelection(leftTopCell, cell);
+    if (isDragging && leftTopPos) {
+      const pos = convertMousePosToCellPos(event);
+      if (pos) {
+        updateSelection(leftTopPos, pos);
       }
     }
     isDragging = false;
-    leftTopCell = null;
+    leftTopPos = null;
   }
 
+  //TODO: why handleEnterPress takes numbers as arguments??
   function handleEnterPress(x: number, y: number) {
-    const currentCell = getCell(x, y);
-    currentCell.isEditing = false;
-    currentCell.isSelected = false;
-    selectedCells.delete(getCellKey(x, y));
+    const pos: CellPosition = {x, y};
+    const state = sheetData.get(pos);
+    if (state) {
+      sheetData.set(pos, {
+        ...state,
+        isEditing: false,
+        isSelected: false
+      })
+    }
+    selectedPoss.delete(pos);
 
     const nextY = y + 1;
     if (nextY < rowCount) {
-      for (const cell of Object.values(cellData)) {
-        cell.isSelected = false;
-        cell.isEditing = false;
+      for (const state of sheetData.values()) {
+        state.isSelected = false;
+        state.isEditing = false;
       }
-      selectedCells.clear()
-      const nextCell = getCell(x, nextY)
-      nextCell.isSelected = true;
-      nextCell.isEditing = true;
-      selectedCells.add(getCellKey(x, nextY))
+      selectedPoss.clear()
+      const pos: CellPosition = {x, y: nextY}
+      const state = sheetData.get(pos);
+      if (state) {
+        state.isSelected = true;
+        state.isEditing = true;
+      }
+      selectedPoss.add(pos)
     }
   }
 
@@ -189,10 +180,34 @@
           data-cell-coords={`${col.index}-${row.index}`}>
          <Cell 
           bind:cell={
-            () => getCell(col.index, row.index),
-            (newCell) => setCell(col.index, row.index, newCell)
+            () => {
+              const pos: CellPosition = {
+                x: col.index,
+                y: row.index,
+              }
+              const state = sheetData.get(pos);
+              if (state) {
+                return state;
+              } else {
+                //TODO: what to return when state is undefined
+                const mockState: CellState = {
+                  isEditing: false,
+                  isSelected: false,
+                  rawValue: "",
+                  displayValue: ""
+                }
+                return mockState
+              }
+            },
+            (newState: CellState) => {
+              const pos: CellPosition = {
+                x: col.index,
+                y: row.index,
+              }
+              sheetData.set(pos, newState)
+            }
           } 
-          grid={cellData}
+          grid={sheetData}
           onMouseDown={handleMouseDown}
           onMouseUp={handleMouseUp}
           onEnterPress={handleEnterPress}
@@ -203,4 +218,4 @@
   </div>
 </div>
 
-<Chart {selectedValues} bind:this={chartComponent}/>
+<Chart {sheetData} bind:this={chartComponent}/>

@@ -1,8 +1,11 @@
-export type Cell = {
-  x: number;
-  y: number;
+export type CellState = {
   rawValue: string;
   displayValue: string;
   isSelected: boolean;
   isEditing: boolean;
+};
+
+export type CellPosition = {
+  x: number;
+  y: number;
 };
