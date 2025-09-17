@@ -9,14 +9,54 @@
 
   const rowCount = 1000;
   const colCount = 1000;
-  const sheetHeight = 32;
-  const sheetWidth = 100;
+  const cellHeight = 40;
+  const cellWidth = 100;
 
-  let cellData = $state<Record<string, CellType>>({});
+  // global state
+  let grid = $state<Record<string, CellType>>({});
+  
+  // to select cells
+  let leftTopCell: CellType | null = $state(null);
+  let isDragging = $state(false);
+  let selectedCells = new SvelteSet<string>();
+  let selectedValues: string[] = $derived(
+    Array.from(selectedCells).map(key => {
+      const cell = grid[key];
+      return cell?.displayValue || "";
+    }).filter(val => val !== "")
+  )
 
+  // to show the graph
+  let chartComponent: Chart | null = $state(null);
+
+  // virtual scroll
+  let virtualListEl: HTMLDivElement;
+  let rowVirtualizer: Readable<SvelteVirtualizer<HTMLDivElement, HTMLDivElement>> | undefined = $state()
+  let columnVirtualizer: Readable<SvelteVirtualizer<HTMLDivElement, HTMLDivElement>> | undefined =  $state()
+
+  $effect(() => {
+    if (virtualListEl) {
+      rowVirtualizer = createVirtualizer<HTMLDivElement, HTMLDivElement>({
+    count: rowCount,
+    getScrollElement: () => virtualListEl,
+    estimateSize: () => cellHeight,
+    overscan: 5,
+      })
+      columnVirtualizer = createVirtualizer<HTMLDivElement, HTMLDivElement>({
+    count: colCount,
+    getScrollElement: () => virtualListEl,
+    estimateSize: () => cellWidth,
+    overscan: 5,
+    horizontal: true
+      })
+    }
+  })
+  
+  // cell utility
   function getCell(x: number, y: number): CellType {
     const key = `${x}-${y}`;
-    let cell = cellData[key];
+    let cell = grid[key];
+    // If cell is undefined, initialize it.
     if (!cell){
      cell = {
        x,
@@ -26,60 +66,29 @@
        isSelected: false,
        isEditing: false,
      }
-      cellData[key] = cell;
+      grid[key] = cell;
     }
     return cell
   }
 
-  function setCell(x: number, y: number, newCell: CellType) {
-    const key=`${x}-${y}`;
-    cellData[key] = newCell;
+  function setCell(newCell: CellType) {
+    const key=`${newCell.x}-${newCell.y}`;
+    grid[key] = newCell;
   }
-
-  let leftTopCell: CellType | null = $state(null);
-  let isDragging = $state(false);
-
-  let selectedCells = new SvelteSet<string>();
-  let selectedValues: string[] = $derived(
-    Array.from(selectedCells).map(key => {
-      const cell = cellData[key];
-      return cell?.displayValue || "";
-    }).filter(val => val !== "")
-  )
-
-  let chartComponent: Chart | null = $state(null);
-  let virtualListEl: HTMLDivElement;
-
-  let rowVirtualizer: Readable<SvelteVirtualizer<HTMLDivElement, HTMLDivElement>> | undefined = $state()
-  let columnVirtualizer: Readable<SvelteVirtualizer<HTMLDivElement, HTMLDivElement>> | undefined =  $state()
-
-  $effect(() => {
-    if (virtualListEl) {
-      rowVirtualizer = createVirtualizer<HTMLDivElement, HTMLDivElement>({
-    count: rowCount,
-    getScrollElement: () => virtualListEl,
-    estimateSize: () => sheetHeight,
-    overscan: 5,
-      })
-      columnVirtualizer = createVirtualizer<HTMLDivElement, HTMLDivElement>({
-    count: colCount,
-    getScrollElement: () => virtualListEl,
-    estimateSize: () => sheetWidth,
-    overscan: 5,
-    horizontal: true
-      })
-    }
-  })
 
   function getCellKey(x: number, y: number): string {
     return `${x}-${y}`
   }
 
-  function convertMouseLocToCell(event: MouseEvent) : CellType | null{
-    const target = event.target as HTMLElement;
-    const cellEl = target.closest("[data-cell-coords]")
+  function convertEventLocToCell(event: Event) : CellType | null{
+    const target = event.target;
+    if (!(target instanceof Element)) {
+      return null;
+    }
+    // get the element by data-cell-loc attribute
+    const cellEl = target.closest("[data-cell-loc]")
     if (!cellEl) return null;
-    const coords = cellEl.getAttribute("data-cell-coords")
+    const coords = cellEl.getAttribute("data-cell-loc")
     if (!coords) return null;
     const [x, y] = coords.split("-").map(Number)
     return getCell(x, y)
@@ -87,7 +96,7 @@
 
   function updateSelection(startCell: CellType, endCell: CellType) {
     selectedCells.clear()    
-    for (const cell of Object.values(cellData)) {
+    for (const cell of Object.values(grid)) {
       cell.isSelected = false
     }
 
@@ -108,11 +117,11 @@
 
   function handleMouseDown(event: MouseEvent) {
     selectedCells.clear()
-    for (const cell of Object.values(cellData)) {
+    for (const cell of Object.values(grid)) {
       cell.isSelected = false;
     }
 
-    const cell = convertMouseLocToCell(event);
+    const cell = convertEventLocToCell(event);
     if (cell) {
       leftTopCell = cell;
       isDragging = true;
@@ -123,7 +132,7 @@
 
   function handleMouseMove(event: MouseEvent) {
     if (isDragging && leftTopCell) {
-      const cell = convertMouseLocToCell(event);
+      const cell = convertEventLocToCell(event);
       if (cell) {
         updateSelection(leftTopCell, cell);
       }
@@ -132,7 +141,7 @@
 
   function handleMouseUp(event: MouseEvent) {
     if (isDragging && leftTopCell) {
-      const cell = convertMouseLocToCell(event);
+      const cell = convertEventLocToCell(event);
       if (cell) {
         updateSelection(leftTopCell, cell);
       }
@@ -141,24 +150,28 @@
     leftTopCell = null;
   }
 
-  function handleEnterPress(x: number, y: number) {
-    const currentCell = getCell(x, y);
+  function handleEnterPress(event: KeyboardEvent) {
+    const currentCell = convertEventLocToCell(event);
+    if (currentCell) {
     currentCell.isEditing = false;
     currentCell.isSelected = false;
-    selectedCells.delete(getCellKey(x, y));
+    selectedCells.delete(getCellKey(currentCell.x, currentCell.y));
 
-    const nextY = y + 1;
+    const nextY = currentCell.y + 1;
     if (nextY < rowCount) {
-      for (const cell of Object.values(cellData)) {
+      for (const cell of Object.values(grid)) {
         cell.isSelected = false;
         cell.isEditing = false;
       }
       selectedCells.clear()
-      const nextCell = getCell(x, nextY)
+      const nextCell = getCell(currentCell.x, nextY)
       nextCell.isSelected = true;
       nextCell.isEditing = true;
-      selectedCells.add(getCellKey(x, nextY))
+      selectedCells.add(getCellKey(currentCell.x, nextY))
     }
+      
+    }
+    
   }
 
 </script>
@@ -186,13 +199,13 @@
               height: ${row.size}px;
               transform: translateX(${col.start}px) translateY(${row.start}px);
            `}
-          data-cell-coords={`${col.index}-${row.index}`}>
+          data-cell-loc={`${col.index}-${row.index}`}>
          <Cell 
           bind:cell={
             () => getCell(col.index, row.index),
-            (newCell) => setCell(col.index, row.index, newCell)
+            (cell) => setCell(cell)
           } 
-          grid={cellData}
+          grid={grid}
           onMouseDown={handleMouseDown}
           onMouseUp={handleMouseUp}
           onEnterPress={handleEnterPress}

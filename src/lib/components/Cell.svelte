@@ -6,10 +6,10 @@
 
   interface Props {
     cell: CellType;
-    grid: Record<string, CellType>
+    grid: Record<string, CellType>;
     onMouseDown: (event: MouseEvent) => void;
     onMouseUp: (event: MouseEvent) => void;
-    onEnterPress: (x: number, y: number) => void;
+    onEnterPress: (event: KeyboardEvent) => void;
   }
 
   let { cell = $bindable(), grid, onMouseDown, onMouseUp, onEnterPress }: Props = $props();
@@ -45,9 +45,8 @@
     use:focusInput
     onkeydown={(event: KeyboardEvent) => {
       if (event.key === "Enter") {
-        // cell.isEditing = false;
-        // cell.isSelected = false;
-        onEnterPress(cell.x, cell.y);
+        // focus the next cell
+        onEnterPress(event);
       }
     }}
     onblur = {() => {
