@@ -56,6 +56,7 @@
   function getCell(x: number, y: number): CellType {
     const key = `${x}-${y}`;
     let cell = grid[key];
+    // If cell is undefined, initialize it.
     if (!cell){
      cell = {
        x,
@@ -80,14 +81,16 @@
   }
 
   function convertMouseLocToCell(event: MouseEvent) : CellType | null{
-    //TODO: what is going on here?
-    const target = event.target as HTMLElement;
+    //TODO: check what is going on here
+    const target = event.target;
+    if (!(target instanceof Element)) {
+      return null;
+    }
     const cellEl = target.closest("[data-cell-coords]")
     if (!cellEl) return null;
     const coords = cellEl.getAttribute("data-cell-coords")
     if (!coords) return null;
     const [x, y] = coords.split("-").map(Number)
-    //TODO: fix type error
     return getCell(x, y)
   }
 
