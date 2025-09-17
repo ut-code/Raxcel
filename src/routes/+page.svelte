@@ -80,15 +80,15 @@
     return `${x}-${y}`
   }
 
-  function convertMouseLocToCell(event: MouseEvent) : CellType | null{
-    //TODO: check what is going on here
+  function convertEventLocToCell(event: Event) : CellType | null{
     const target = event.target;
     if (!(target instanceof Element)) {
       return null;
     }
-    const cellEl = target.closest("[data-cell-coords]")
+    // get the element by data-cell-loc attribute
+    const cellEl = target.closest("[data-cell-loc]")
     if (!cellEl) return null;
-    const coords = cellEl.getAttribute("data-cell-coords")
+    const coords = cellEl.getAttribute("data-cell-loc")
     if (!coords) return null;
     const [x, y] = coords.split("-").map(Number)
     return getCell(x, y)
@@ -121,7 +121,7 @@
       cell.isSelected = false;
     }
 
-    const cell = convertMouseLocToCell(event);
+    const cell = convertEventLocToCell(event);
     if (cell) {
       leftTopCell = cell;
       isDragging = true;
@@ -132,7 +132,7 @@
 
   function handleMouseMove(event: MouseEvent) {
     if (isDragging && leftTopCell) {
-      const cell = convertMouseLocToCell(event);
+      const cell = convertEventLocToCell(event);
       if (cell) {
         updateSelection(leftTopCell, cell);
       }
@@ -141,7 +141,7 @@
 
   function handleMouseUp(event: MouseEvent) {
     if (isDragging && leftTopCell) {
-      const cell = convertMouseLocToCell(event);
+      const cell = convertEventLocToCell(event);
       if (cell) {
         updateSelection(leftTopCell, cell);
       }
@@ -150,25 +150,28 @@
     leftTopCell = null;
   }
 
-  //TODO: why handleEnterPress takes number argument??
-  function handleEnterPress(x: number, y: number) {
-    const currentCell = getCell(x, y);
+  function handleEnterPress(event: KeyboardEvent) {
+    const currentCell = convertEventLocToCell(event);
+    if (currentCell) {
     currentCell.isEditing = false;
     currentCell.isSelected = false;
-    selectedCells.delete(getCellKey(x, y));
+    selectedCells.delete(getCellKey(currentCell.x, currentCell.y));
 
-    const nextY = y + 1;
+    const nextY = currentCell.y + 1;
     if (nextY < rowCount) {
       for (const cell of Object.values(grid)) {
         cell.isSelected = false;
         cell.isEditing = false;
       }
       selectedCells.clear()
-      const nextCell = getCell(x, nextY)
+      const nextCell = getCell(currentCell.x, nextY)
       nextCell.isSelected = true;
       nextCell.isEditing = true;
-      selectedCells.add(getCellKey(x, nextY))
+      selectedCells.add(getCellKey(currentCell.x, nextY))
     }
+      
+    }
+    
   }
 
 </script>
@@ -196,7 +199,7 @@
               height: ${row.size}px;
               transform: translateX(${col.start}px) translateY(${row.start}px);
            `}
-          data-cell-coords={`${col.index}-${row.index}`}>
+          data-cell-loc={`${col.index}-${row.index}`}>
          <Cell 
           bind:cell={
             () => getCell(col.index, row.index),
