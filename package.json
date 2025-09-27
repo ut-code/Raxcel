@@ -21,7 +21,8 @@
     "chart.js": "^4.5.0",
     "daisyui": "^5.0.43",
     "math.js": "^1.1.46",
-    "tailwindcss": "^4.1.8"
+    "tailwindcss": "^4.1.8",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@sveltejs/adapter-static": "^3.0.6",
