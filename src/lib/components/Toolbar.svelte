@@ -99,6 +99,11 @@
         type="file" 
         accept=".xlsx,.xls" 
         bind:files
+        onchange={() => {
+          if (files) {
+            xlsxLoaderComponent.setFiles(files);
+          }
+        }}
       />
       {#if isDragOver}
         <p style="margin: 5px 0; font-size: 0.9em; color: #0066cc;">ファイルをドロップしてください</p>
