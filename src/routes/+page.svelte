@@ -14,7 +14,16 @@
 
   // global state
   let grid = $state<Record<string, CellType>>({});
-  
+
+  // Function to update the grid
+  function updateGrid(x: number, y: number, cellData: Partial<CellType>) {
+    const key = `${x}-${y}`;
+    grid[key] = {
+      ...grid[key],
+      ...cellData
+    };
+  }
+
   // to select cells
   let leftTopCell: CellType | null = $state(null);
   let isDragging = $state(false);
@@ -51,7 +60,7 @@
       })
     }
   })
-  
+
   // cell utility
   function getCell(x: number, y: number): CellType {
     const key = `${x}-${y}`;
@@ -95,7 +104,7 @@
   }
 
   function updateSelection(startCell: CellType, endCell: CellType) {
-    selectedCells.clear()    
+    selectedCells.clear()
     for (const cell of Object.values(grid)) {
       cell.isSelected = false
     }
@@ -104,7 +113,7 @@
     const endX = Math.max(startCell.x, endCell.x);
     const startY = Math.min(startCell.y, endCell.y);
     const endY = Math.max(startCell.y, endCell.y);
-    
+
     for (let y = startY; y <= endY; y++) {
       for (let x = startX; x <= endX; x++) {
         const key = getCellKey(x, y);
@@ -169,16 +178,18 @@
       nextCell.isEditing = true;
       selectedCells.add(getCellKey(currentCell.x, nextY))
     }
-      
+
     }
-    
+
   }
 
   function handleDelete() {
      for (const key of selectedCells) {
-      const cell = cellData[key];
+      const cell = grid[key];
       if (cell) {
         cell.displayValue = "";
+        cell.rawValue = "";
+        grid[key] = { ...cell };
       }
     }
   }
@@ -213,12 +224,12 @@
               transform: translateX(${col.start}px) translateY(${row.start}px);
            `}
           data-cell-loc={`${col.index}-${row.index}`}>
-         <Cell 
+         <Cell
           bind:cell={
             () => getCell(col.index, row.index),
             (cell) => setCell(cell)
-          } 
-          grid={grid}
+          }
+          bind:grid={grid}
           onMouseDown={handleMouseDown}
           onMouseUp={handleMouseUp}
           onEnterPress={handleEnterPress}

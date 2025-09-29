@@ -2,7 +2,7 @@
   import type { Cell as CellType } from "$lib/types.ts";
   import type { Action } from "svelte/action";
   import { evaluate } from "mathjs"
-  import { resolveAll } from "$lib/formula";
+  import { resolveAll, updateCell } from "$lib/formula";
 
   interface Props {
     cell: CellType;
@@ -12,7 +12,7 @@
     onEnterPress: (event: KeyboardEvent) => void;
   }
 
-  let { cell = $bindable(), grid, onMouseDown, onMouseUp, onEnterPress }: Props = $props();
+  let { cell = $bindable(), grid = $bindable(), onMouseDown, onMouseUp, onEnterPress }: Props = $props();
 
   const focusInput: Action = (node) => {
     node.focus();
@@ -21,20 +21,28 @@
     }
   }
 
-  const parseRawValue: Action = (_node) => {
+  const processCell = () => {
+    const cellKey = `${cell.x}-${cell.y}`;
     if (cell.rawValue[0] === "=") {
       try {
-      const formula = cell.rawValue.slice(1);
-      const resolvedFormula = resolveAll(formula, grid)
-      cell.displayValue = evaluate(resolvedFormula);
+        const formula = cell.rawValue.slice(1);
+        const resolvedFormula = resolveAll(formula, grid, cellKey);
+        cell.displayValue = evaluate(resolvedFormula);
       } catch (error) {
         cell.displayValue = "#ERROR";
       }
     } else {
       cell.displayValue = cell.rawValue;
     }
+    // Update the grid with the new cell value
+    grid[cellKey] = { ...cell };
+    // Update dependent cells
+    updateCell(cellKey, grid);
   }
 
+  const parseRawValue: Action = (_node) => {
+    processCell();
+  }
 </script>
 
 {#if cell.isEditing}
@@ -45,11 +53,12 @@
     use:focusInput
     onkeydown={(event: KeyboardEvent) => {
       if (event.key === "Enter") {
-        // focus the next cell
+        processCell();
         onEnterPress(event);
       }
     }}
     onblur = {() => {
+      processCell();
       cell.isEditing = false;
       cell.isSelected = false;
     }}
@@ -58,8 +67,8 @@
   <button
     class={[
       "w-full h-full border border-gray-300 box-border cursor-pointer flex-shrink-0",
-        cell.isSelected ? 
-        "bg-gray-200" : 
+        cell.isSelected ?
+        "bg-gray-200" :
         "bg-white"
     ]}
     onmousedown={onMouseDown}
