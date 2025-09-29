@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Cell as CellType } from "$lib/types.ts";
   import type { Action } from "svelte/action";
-  import { evaluate } from "mathjs"
+  import { evaluate } from "mathjs";
   import { resolveAll, updateCell } from "$lib/formula";
 
   interface Props {
@@ -12,14 +12,20 @@
     onEnterPress: (event: KeyboardEvent) => void;
   }
 
-  let { cell = $bindable(), grid = $bindable(), onMouseDown, onMouseUp, onEnterPress }: Props = $props();
+  let {
+    cell = $bindable(),
+    grid = $bindable(),
+    onMouseDown,
+    onMouseUp,
+    onEnterPress,
+  }: Props = $props();
 
   const focusInput: Action = (node) => {
     node.focus();
     if (node instanceof HTMLInputElement) {
-      node.select()
+      node.select();
     }
-  }
+  };
 
   const processCell = () => {
     const cellKey = `${cell.x}-${cell.y}`;
@@ -38,11 +44,11 @@
     grid[cellKey] = { ...cell };
     // Update dependent cells
     updateCell(cellKey, grid);
-  }
+  };
 
   const parseRawValue: Action = (_node) => {
     processCell();
-  }
+  };
 </script>
 
 {#if cell.isEditing}
@@ -57,7 +63,7 @@
         onEnterPress(event);
       }
     }}
-    onblur = {() => {
+    onblur={() => {
       processCell();
       cell.isEditing = false;
       cell.isSelected = false;
@@ -67,9 +73,7 @@
   <button
     class={[
       "w-full h-full border border-gray-300 box-border cursor-pointer flex-shrink-0",
-        cell.isSelected ?
-        "bg-gray-200" :
-        "bg-white"
+      cell.isSelected ? "bg-gray-200" : "bg-white",
     ]}
     onmousedown={onMouseDown}
     onmouseup={onMouseUp}
