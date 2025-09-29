@@ -196,6 +196,7 @@
       if (cell) {
         cell.displayValue = "";
         cell.rawValue = "";
+        cell.isSelected = false;
         grid[key] = { ...cell };
       }
     }
@@ -212,6 +213,11 @@
       width: ${$columnVirtualizer?.getTotalSize()}px;
     `}
     onmousemove={handleMouseMove}
+    onkeydown={(event: KeyboardEvent) => {
+      if (event.key === "Delete" || event.key === "Backspace") {
+        handleDelete();
+      }
+    }}
     role="grid"
     tabindex="0"
   >
