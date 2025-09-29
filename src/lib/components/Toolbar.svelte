@@ -1,6 +1,6 @@
 <script lang="ts">
-  import Chart from "$lib/components/Chart.svelte"
-  import Xlsxloader from "$lib/components/Xlsxloader.svelte"
+  import Chart from "$lib/components/Chart.svelte";
+  import Xlsxloader from "$lib/components/Xlsxloader.svelte";
 
   let isDragOver = $state(false);
   let fileInput = $state<HTMLInputElement>();
@@ -9,7 +9,7 @@
   let error = $state<string | null>(null);
 
   interface Props {
-    chartComponent: Chart | null
+    chartComponent: Chart | null;
   }
   let { chartComponent }: Props = $props();
 
@@ -17,7 +17,7 @@
     if (chartComponent) {
       const success = chartComponent.drawChart();
       if (!success) {
-        alert("select valid numbers")
+        alert("select valid numbers");
       }
     }
   }
@@ -25,7 +25,7 @@
   let xlsxLoaderComponent: any;
 
   async function handleFileUpload(): Promise<void> {
-    await xlsxLoaderComponent.handleFileUpload()
+    await xlsxLoaderComponent.handleFileUpload();
     const result = xlsxLoaderComponent.getData();
     jsonData = result.jsonData;
     error = result.error;
@@ -47,7 +47,7 @@
   async function handleDrop(e: DragEvent): Promise<void> {
     e.preventDefault();
     isDragOver = false;
-    
+
     const droppedFiles = e.dataTransfer?.files;
 
     if (droppedFiles && droppedFiles.length > 0) {
@@ -60,31 +60,28 @@
       xlsxLoaderComponent.setFiles(dt.files);
     }
   }
-
-
 </script>
 
 <Xlsxloader bind:this={xlsxLoaderComponent} />
 
 <div class="flex flex-row">
   <div>
-
-<button onclick={handlerCreateChart} class="btn">Create Chart</button>
+    <button onclick={handlerCreateChart} class="btn">Create Chart</button>
   </div>
 
   <div>
-
-<button class="btn">Do nothing</button>
+    <button class="btn">Do nothing</button>
   </div>
 
   <div>
-
-<button class="btn">Do nothing</button>
+    <button class="btn">Do nothing</button>
   </div>
 
   <div class="ml-auto flex gap-2">
-    <button onclick={handleFileUpload} class="btn">Excelファイルをアップロード</button>
-    
+    <button onclick={handleFileUpload} class="btn"
+      >Excelファイルをアップロード</button
+    >
+
     <!-- ドラッグ&ドロップエリア -->
     <div
       role="button"
@@ -92,12 +89,14 @@
       ondragover={handleDragOver}
       ondragleave={handleDragLeave}
       ondrop={handleDrop}
-      style="border: 2px dashed {isDragOver ? '#0066cc' : '#ccc'}; padding: 10px; border-radius: 4px;"
+      style="border: 2px dashed {isDragOver
+        ? '#0066cc'
+        : '#ccc'}; padding: 10px; border-radius: 4px;"
     >
-      <input 
+      <input
         bind:this={fileInput}
-        type="file" 
-        accept=".xlsx,.xls" 
+        type="file"
+        accept=".xlsx,.xls"
         bind:files
         onchange={() => {
           if (files) {
@@ -106,14 +105,17 @@
         }}
       />
       {#if isDragOver}
-        <p style="margin: 5px 0; font-size: 0.9em; color: #0066cc;">ファイルをドロップしてください</p>
+        <p style="margin: 5px 0; font-size: 0.9em; color: #0066cc;">
+          ファイルをドロップしてください
+        </p>
       {:else}
-        <p style="margin: 5px 0; font-size: 0.9em; color: #666;">または、ここにドラッグ＆ドロップ</p>
+        <p style="margin: 5px 0; font-size: 0.9em; color: #666;">
+          または、ここにドラッグ＆ドロップ
+        </p>
       {/if}
     </div>
   </div>
 </div>
-
 
 {#if error}
   <p style="color: red;">{error}</p>
