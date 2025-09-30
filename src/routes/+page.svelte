@@ -84,7 +84,6 @@
         isSelected: false,
         isEditing: false,
       };
-      grid[key] = cell;
     }
     return cell;
   }
