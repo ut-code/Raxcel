@@ -84,7 +84,6 @@
         isSelected: false,
         isEditing: false,
       };
-      grid[key] = cell;
     }
     return cell;
   }
@@ -203,7 +202,7 @@
   }
 </script>
 
-<Toolbar {chartComponent} />
+<Toolbar {chartComponent} bind:grid />
 
 <div bind:this={virtualListEl} class="h-[600px] w-full overflow-auto">
   <div
