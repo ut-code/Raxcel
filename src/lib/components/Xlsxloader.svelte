@@ -54,7 +54,6 @@
         }
       }
 
-      // This works fine, but is not rendered.
       console.log("Grid updated with Excel data:", $state.snapshot(grid));
     } catch (err) {
       error = `エラー: ${err instanceof Error ? err.message : "Unknown error"}`;
