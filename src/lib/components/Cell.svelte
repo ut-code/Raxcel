@@ -62,6 +62,13 @@
         processCell();
         onEnterPress(event);
       }
+      if (event.key === "Escape") {
+        cell.isEditing = false;
+        cell.isSelected = false;
+      }
+      if (event.key === "Delete" || event.key === "Backspace") {
+        event.stopPropagation();
+      }
     }}
     onblur={() => {
       processCell();
