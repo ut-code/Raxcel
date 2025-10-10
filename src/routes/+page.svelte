@@ -9,6 +9,7 @@
   } from "@tanstack/svelte-virtual";
   import { SvelteSet } from "svelte/reactivity";
   import { type Readable } from "svelte/store";
+  import Chat from "$lib/components/Chat.svelte";
 
   const rowCount = 1000;
   const colCount = 1000;
@@ -42,6 +43,8 @@
 
   // to show the graph
   let chartComponent: Chart | null = $state(null);
+
+  let isChatOpen = $state(false);
 
   // virtual scroll
   let virtualListEl: HTMLDivElement;
@@ -202,7 +205,7 @@
   }
 </script>
 
-<Toolbar {chartComponent} bind:grid />
+<Toolbar {chartComponent} bind:grid bind:isChatOpen />
 
 <div bind:this={virtualListEl} class="h-[600px] w-full overflow-auto">
   <div
@@ -246,4 +249,7 @@
   </div>
 </div>
 
+{#if isChatOpen}
+  <Chat />
+{/if}
 <Chart {selectedValues} bind:this={chartComponent} />

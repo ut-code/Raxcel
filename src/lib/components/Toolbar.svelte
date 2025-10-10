@@ -6,8 +6,13 @@
   interface Props {
     chartComponent: Chart | null;
     grid: Record<string, Cell>;
+    isChatOpen: boolean;
   }
-  let { chartComponent, grid = $bindable() }: Props = $props();
+  let {
+    chartComponent,
+    grid = $bindable(),
+    isChatOpen = $bindable(),
+  }: Props = $props();
 
   function handlerCreateChart() {
     if (chartComponent) {
@@ -25,9 +30,23 @@
   <div>
     <button onclick={handlerCreateChart} class="btn">Create Chart</button>
   </div>
-
+  {#if isChatOpen}
+    <button
+      class="btn"
+      onclick={() => {
+        isChatOpen = false;
+      }}>Close AI Chat</button
+    >
+  {:else}
+    <button
+      class="btn"
+      onclick={() => {
+        isChatOpen = true;
+      }}>Open AI Chat</button
+    >
+  {/if}
   <div>
-    <button class="btn">Do nothing</button>
+    <button class="btn">Toggle </button>
   </div>
 
   <div>
