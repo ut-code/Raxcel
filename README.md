@@ -2,14 +2,15 @@
 
 ## Prerequisites
 
-- Tauri >= 2.0
+- Wails >= 2.0
 - Bun >= 1.2
 
 ## Setup
 
 ```sh
-git clone git@github.com:ut-code/Raxcel.git
-cd Raxcel
-bun install
-bun dev
+wails dev # develop
+wails dev -tags webkit2_41 # develop on linux
+wails build # build
+wails build -tags webkit2_41 # build on linux
+./build/bin/Raxcel # execute binary
 ```
