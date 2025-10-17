@@ -8,6 +8,7 @@
 ## Setup
 
 ```sh
+bun install # install lefthook
 wails dev # develop
 wails dev -tags webkit2_41 # develop on linux
 wails build # build
