@@ -15,3 +15,8 @@ wails build # build
 wails build -tags webkit2_41 # build on linux
 ./build/bin/Raxcel # execute binary
 ```
+
+```sh
+cp .env.sample .env
+```
+Paste the secrets shared in Discord.
