@@ -2,6 +2,7 @@
 node_modules
 .svelte-kit
 .env
+package.json.md5
 
 build/bin
 frontend/build
