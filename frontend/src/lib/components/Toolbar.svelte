@@ -45,9 +45,6 @@
       }}>Open AI Chat</button
     >
   {/if}
-  <div>
-    <button class="btn">Toggle </button>
-  </div>
 
   <div>
     <button class="btn">Do nothing</button>

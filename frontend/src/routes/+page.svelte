@@ -205,51 +205,53 @@
   }
 </script>
 
-<Toolbar {chartComponent} bind:grid bind:isChatOpen />
+<div class="h-screen flex flex-col">
+  <Toolbar {chartComponent} bind:grid bind:isChatOpen />
 
-<div bind:this={virtualListEl} class="h-[600px] w-full overflow-auto">
-  <div
-    class="relative"
-    style={`
+  <div bind:this={virtualListEl} class="flex-1 w-full overflow-auto">
+    <div
+      class="relative"
+      style={`
       height: ${$rowVirtualizer?.getTotalSize()}px;
       width: ${$columnVirtualizer?.getTotalSize()}px;
     `}
-    onmousemove={handleMouseMove}
-    onkeydown={(event: KeyboardEvent) => {
-      if (event.key === "Delete" || event.key === "Backspace") {
-        handleDelete();
-      }
-    }}
-    role="grid"
-    tabindex="0"
-  >
-    {#each $rowVirtualizer?.getVirtualItems() ?? [] as row (row.index)}
-      {#each $columnVirtualizer?.getVirtualItems() ?? [] as col (col.index)}
-        <div
-          class="absolute top-0 left-0"
-          style={`
+      onmousemove={handleMouseMove}
+      onkeydown={(event: KeyboardEvent) => {
+        if (event.key === "Delete" || event.key === "Backspace") {
+          handleDelete();
+        }
+      }}
+      role="grid"
+      tabindex="0"
+    >
+      {#each $rowVirtualizer?.getVirtualItems() ?? [] as row (row.index)}
+        {#each $columnVirtualizer?.getVirtualItems() ?? [] as col (col.index)}
+          <div
+            class="absolute top-0 left-0"
+            style={`
               width: ${col.size}px;
               height: ${row.size}px;
               transform: translateX(${col.start}px) translateY(${row.start}px);
            `}
-          data-cell-loc={`${col.index}-${row.index}`}
-        >
-          <Cell
-            bind:cell={
-              () => getCell(col.index, row.index), (cell) => setCell(cell)
-            }
-            bind:grid
-            onMouseDown={handleMouseDown}
-            onMouseUp={handleMouseUp}
-            onEnterPress={handleEnterPress}
-          />
-        </div>
+            data-cell-loc={`${col.index}-${row.index}`}
+          >
+            <Cell
+              bind:cell={
+                () => getCell(col.index, row.index), (cell) => setCell(cell)
+              }
+              bind:grid
+              onMouseDown={handleMouseDown}
+              onMouseUp={handleMouseUp}
+              onEnterPress={handleEnterPress}
+            />
+          </div>
+        {/each}
       {/each}
-    {/each}
+    </div>
   </div>
-</div>
 
-{#if isChatOpen}
-  <Chat />
-{/if}
-<Chart {selectedValues} bind:this={chartComponent} />
+  {#if isChatOpen}
+    <Chat />
+  {/if}
+  <Chart {selectedValues} bind:this={chartComponent} />
+</div>
