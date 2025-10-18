@@ -73,8 +73,13 @@
     if (currentFile) await processFile(currentFile);
   }}
 >
-  <input type="file" accept=".xlsx,.xls" onchange={handleFileInput} />
-  <button type="submit">upload Excel file</button>
+  <input
+    type="file"
+    class="file-input"
+    accept=".xlsx,.xls"
+    onchange={handleFileInput}
+  />
+  <button class="btn" type="submit">upload Excel file</button>
 </form>
 
 {#if error}
