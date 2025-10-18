@@ -1,8 +1,9 @@
 {
   "name": "raxcel",
   "module": "index.ts",
-  "type": "module",
-  "private": true,
+  "scripts": {
+    "format": "bunx prettier . --write"
+  },
   "devDependencies": {
     "@types/bun": "latest",
     "lefthook": "^1.12.3",
@@ -11,5 +12,7 @@
   },
   "peerDependencies": {
     "typescript": "^5"
-  }
+  },
+  "private": true,
+  "type": "module"
 }
