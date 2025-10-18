@@ -49,9 +49,29 @@
   const parseRawValue: Action = (_node) => {
     processCell();
   };
+  function getCellHeader(x: number, y: number): string {
+    if (x === 0 && y > 0) {
+      return y.toString();
+    } else if (y === 0 && x > 0) {
+      let column = "";
+      let columnIndex = x;
+      while (columnIndex > 0) {
+        columnIndex--;
+        column = String.fromCharCode(65 + (columnIndex % 26)) + column;
+        columnIndex = Math.floor(columnIndex / 26);
+      }
+      return column;
+    } else {
+      return "";
+    }
+  }
 </script>
 
-{#if cell.isEditing}
+{#if cell.x === 0 || cell.y === 0}
+  <div class="w-full h-full text-center border border-gray-300 box-border">
+    {getCellHeader(cell.x, cell.y)}
+  </div>
+{:else if cell.isEditing}
   <input
     type="text"
     class="w-full h-full border border-gray-300 box-border cursor-pointer bg-white"
