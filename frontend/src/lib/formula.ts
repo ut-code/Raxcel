@@ -11,7 +11,7 @@ function columnToNumber(column: string): number {
     result = result * 26 + (column.charCodeAt(i) - "A".charCodeAt(0) + 1);
   }
   // Zero-based numbering
-  return result - 1;
+  return result;
 }
 
 function parseA1Notation(cellRef: string): { x: number; y: number } | null {
@@ -21,7 +21,7 @@ function parseA1Notation(cellRef: string): { x: number; y: number } | null {
   return {
     x: columnToNumber(column),
     // Zero-based numbering
-    y: parseInt(row) - 1,
+    y: parseInt(row),
   };
 }
 
