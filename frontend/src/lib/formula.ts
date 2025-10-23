@@ -1,5 +1,5 @@
 import type { Cell } from "./types";
-import { sum } from "mathjs";
+import * as math from "mathjs";
 
 // Track which cells depend on which other cells
 type DependencyMap = Record<string, Set<string>>;
