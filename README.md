@@ -4,6 +4,7 @@
 
 - Wails >= 2.0
 - Bun >= 1.2
+- Vercel CLI
 
 ## Setup
 
