@@ -15,6 +15,7 @@
         packages.default = pkgs.mkShell {
           packages = with pkgs; [
             wails
+            nodePackages.vercel
           ];
         };
       }
