@@ -1,16 +1,23 @@
 {
-  description = "Simple flake with a devshell";
-
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs?ref=nixos-25.05";
-    blueprint.url = "github:numtide/blueprint";
-    blueprint.inputs.nixpkgs.follows = "nixpkgs";
+    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    flake-utils.url = "github:numtide/flake-utils";
   };
 
-  # Load the blueprint
-  outputs = inputs:
-    inputs.blueprint {
-      inherit inputs;
-      prefix = "nix/";
-    };
+  outputs =
+    { nixpkgs, flake-utils, ... }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
+      let
+        pkgs = nixpkgs.legacyPackages.${system};
+      in
+      {
+        packages.default = pkgs.mkShell {
+          packages = with pkgs; [
+            wails
+            nodePackages.vercel
+          ];
+        };
+      }
+    );
 }
