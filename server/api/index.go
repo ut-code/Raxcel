@@ -12,36 +12,38 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-var e *echo.Echo
-var client *genai.Client
-
 type UserMessage struct {
 	Message string `json:"message"`
 }
 
-func init() {
+func Handler(w http.ResponseWriter, r *http.Request) {
 	// load api key
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-	apiKey := os.Getenv("GEMINI_API_KEY")
-	// setup gemini client
-	ctx := context.Background()
-	client, err = genai.NewClient(ctx, &genai.ClientConfig{
-		APIKey: apiKey,
-	})
-	if err != nil {
-		log.Fatal("Error creating Gemini client", err)
+	// can't load environmental variables from .env file in production
+	if os.Getenv("VERCEL_ENV") == "" {
+		if err := godotenv.Load(); err != nil {
+			log.Fatal("Error loading .env file")
+		}
 	}
 	// setup echo
-	e = echo.New()
+	e := echo.New()
 
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello from Echo!")
 	})
 
 	e.POST("/messages", func(c echo.Context) error {
+		apiKey := os.Getenv("GEMINI_API_KEY")
+		if apiKey == "" {
+			log.Fatal("GEMINI_API_KEY is not set")
+		}
+		// setup gemini client
+		ctx := context.Background()
+		client, err := genai.NewClient(ctx, &genai.ClientConfig{
+			APIKey: apiKey,
+		})
+		if err != nil {
+			log.Fatal("Error creating Gemini client", err)
+		}
 		message := new(UserMessage)
 		if err := c.Bind(message); err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid JSON"})
@@ -62,12 +64,5 @@ func init() {
 			"aiMessage": aiMessage,
 		})
 	})
-}
-
-func Handler(w http.ResponseWriter, r *http.Request) {
 	e.ServeHTTP(w, r)
-}
-
-func Local() {
-	e.Logger.Fatal(e.Start(":1323"))
 }
