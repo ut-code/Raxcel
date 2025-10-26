@@ -2,22 +2,39 @@
 
 ## Prerequisites
 
-- Wails >= 2.0
+- Wails
 - Bun >= 1.2
 - Vercel CLI
 
 ## Setup
 
 ```sh
-bun install # install lefthook
-wails dev # develop
+bun install
+cd desktop
+bun install
+cp .env.sample .env
+cd ../server
+touch .env # Then paste the secrets shared on Discord
+```
+
+## Development
+In one terminal,
+```sh
+cd frontend
+wails dev
 wails dev -tags webkit2_41 # develop on linux
-wails build # build
+wails build
 wails build -tags webkit2_41 # build on linux
 ./build/bin/Raxcel # execute binary
 ```
-
+In another terminal,
 ```sh
-cp .env.sample .env
+cd server
+go run main.go
 ```
-Paste the secrets shared in Discord.
+
+## Deployment
+```sh
+cd server
+vc --prod
+```
