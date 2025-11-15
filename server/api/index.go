@@ -60,7 +60,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 				aiMessage = candidate.Content.Parts[0].Text
 			}
 		}
-		return c.JSON(http.StatusCreated, map[string]interface{}{
+		return c.JSON(http.StatusCreated, map[string]string{
 			"aiMessage": aiMessage,
 		})
 	})
