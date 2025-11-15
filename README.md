@@ -20,7 +20,7 @@ touch .env # Then paste the secrets shared on Discord
 ## Development
 In one terminal,
 ```sh
-cd frontend
+cd desktop
 wails dev
 wails dev -tags webkit2_41 # develop on linux
 wails build
