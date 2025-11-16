@@ -20,7 +20,6 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	e := echo.New()
 
 	e.GET("/", controllers.Greet)
-
 	e.POST("/messages", controllers.ChatWithAI)
 	e.ServeHTTP(w, r)
 }
