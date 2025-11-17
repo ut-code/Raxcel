@@ -21,11 +21,11 @@ func getDBConfig() (string, error) {
 func ConnectDB() (*gorm.DB, error) {
 	config, err := getDBConfig()
 	if err != nil {
-		return nil, fmt.Errorf("Failed to get database config: %w", err)
+		return nil, fmt.Errorf("failed to get database config: %w", err)
 	}
 	db, err := gorm.Open(postgres.Open(config), &gorm.Config{})
 	if err != nil {
-		return nil, fmt.Errorf("Failed to connect database: %w", err)
+		return nil, fmt.Errorf("failed to connect database: %w", err)
 	}
 	return db, nil
 }
