@@ -7,7 +7,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
-	"github.com/ut-code/Raxcel/server/controllers"
+	"github.com/ut-code/Raxcel/server/routes"
 )
 
 func Handler(w http.ResponseWriter, r *http.Request) {
@@ -19,7 +19,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	}
 	e := echo.New()
 
-	e.GET("/", controllers.Greet)
-	e.POST("/messages", controllers.ChatWithAI)
+	e.GET("/", routes.Greet)
+	e.POST("/messages", routes.ChatWithAI)
 	e.ServeHTTP(w, r)
 }
