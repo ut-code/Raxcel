@@ -10,13 +10,14 @@ import (
 	"google.golang.org/genai"
 )
 
+type userMessage struct {
+	Message string `json:"message"`
+}
+
 func Greet(c echo.Context) error {
 	return c.String(http.StatusOK, "Hello from Echo!")
 }
 func ChatWithAI(c echo.Context) error {
-	type userMessage struct {
-		Message string `json:"message"`
-	}
 	apiKey := os.Getenv("GEMINI_API_KEY")
 	if apiKey == "" {
 		log.Fatal("GEMINI_API_KEY is not set")
