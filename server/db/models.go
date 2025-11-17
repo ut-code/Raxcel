@@ -1,6 +1,9 @@
 package db
 
-import "time"
+import (
+	"log"
+	"time"
+)
 
 type User struct {
 	Id           string    `json:"id" gorm:"primaryKey"`
@@ -8,6 +11,7 @@ type User struct {
 	PasswordHash string    `json:"-" gorm:"not null"`
 	CreatedAt    time.Time `json:"createdAt" gorm:"autoCreateTime"`
 	UpdatedAt    time.Time `json:"updatedAt" gorm:"autoUpdateTime"`
+	IsVerified   bool      `json:"isVerified"`
 	Tokens       []Token   `json:"tokens,omitempty" gorm:"foreignKey:UserId;constraint:OnDelete:CASCADE"`
 }
 
@@ -18,4 +22,12 @@ type Token struct {
 	ExpiresAt time.Time `json:"expiresAt" gorm:"not null"`
 	CreatedAt time.Time `json:"createdAt" gorm:"autoCreateTime"`
 	User      User      `json:"user,omitempty" gorm:"foreignKey:UserId;constraint:OnDelete:CASCADE"`
+}
+
+func Migrate() {
+	db, err := ConnectDB()
+	if err != nil {
+		log.Fatal("failed to connect db")
+	}
+	db.AutoMigrate(&User{}, &Token{})
 }
