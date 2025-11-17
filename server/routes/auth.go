@@ -137,6 +137,34 @@ func VerifyEmail(c echo.Context) error {
 func Login(c echo.Context) error {
 	// Validate Email and Password
 	// Store JWT in cookie
+	req := new(LoginRequest)
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "invalid request",
+		})
+	}
+	database, err := db.ConnectDB()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "failed to connect to database",
+		})
+	}
+	var user db.User
+	if err := database.Where("email = ?", req.Email).First(&user).Error; err != nil {
+		return c.JSON(http.StatusNotFound, map[string]string{
+			"error": "user not found",
+		})
+	}
+	if !user.IsVerified {
+		return c.JSON(http.StatusForbidden, map[string]string{
+			"error": "email not verifies",
+		})
+	}
+	if err := bcrypt.CompareHashAndPassword([]byte(req.Password), []byte(user.PasswordHash)); err != nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{
+			"error": "invalid email or password",
+		})
+	}
 	return nil
 }
 
