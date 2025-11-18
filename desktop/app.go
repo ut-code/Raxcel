@@ -57,7 +57,25 @@ func (a *App) ChatWithAI(message string) ChatResult {
 	}
 	godotenv.Load(".env")
 	apiUrl := os.Getenv("PUBLIC_API_URL")
-	resp, err := http.Post(fmt.Sprintf("%s/messages", apiUrl), "application/json", bytes.NewReader(jsonData))
+	jwt, err := keyring.Get("Raxcel", "raxcel-user")
+	if err != nil {
+		return ChatResult{
+			Ok:      false,
+			Message: fmt.Sprint(err),
+		}
+	}
+
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/messages", apiUrl), bytes.NewReader(jsonData))
+	if err != nil {
+		return ChatResult{
+			Ok:      false,
+			Message: fmt.Sprint(err),
+		}
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", jwt))
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
 		return ChatResult{
 			Ok:      false,
@@ -206,7 +224,7 @@ func (a *App) Login(email, password string) LoginResult {
 		}
 	}
 	token := serverResponse["token"]
-	err = keyring.Set("Raxcel", email, token)
+	err = keyring.Set("Raxcel", "raxcel-user", token)
 	if err != nil {
 		return LoginResult{
 			Ok:      false,
