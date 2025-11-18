@@ -9,6 +9,7 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
+	"github.com/zalando/go-keyring"
 
 	"net/http"
 )
@@ -148,5 +149,77 @@ func (a *App) Register(email, password string) RegisterResult {
 		Ok:      true,
 		Message: serverResponse["message"],
 		UserId:  serverResponse["userId"],
+	}
+}
+
+type LoginRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type LoginResult struct {
+	Ok      bool   `json:"ok"`
+	Message string `json:"message"`
+	Token   string `json:"token"`
+}
+
+func (a *App) Login(email, password string) LoginResult {
+	postData := LoginRequest{
+		Email:    email,
+		Password: password,
+	}
+	jsonData, err := json.Marshal(postData)
+	if err != nil {
+		return LoginResult{
+			Ok:      false,
+			Message: fmt.Sprintf("Failed to marchal request: %v", err),
+		}
+	}
+	godotenv.Load()
+	apiUrl := os.Getenv("PUBLIC_API_URL")
+
+	resp, err := http.Post(fmt.Sprintf("%s/login", apiUrl), "application/json", bytes.NewReader(jsonData))
+	if err != nil {
+		return LoginResult{
+			Ok:      false,
+			Message: fmt.Sprintf("Failed to send request: %v", err),
+		}
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return LoginResult{
+			Ok:      false,
+			Message: fmt.Sprintf("Failed to read response: %v", err),
+		}
+	}
+
+	var serverResponse map[string]string
+	err = json.Unmarshal(body, &serverResponse)
+	if err != nil {
+		return LoginResult{
+			Ok:      false,
+			Message: fmt.Sprintf("Failed to parse response %v", err),
+		}
+	}
+	if resp.StatusCode != http.StatusOK {
+		return LoginResult{
+			Ok:      false,
+			Message: serverResponse["error"],
+		}
+	}
+	token := serverResponse["token"]
+	err = keyring.Set("Raxcel", email, token)
+	if err != nil {
+		return LoginResult{
+			Ok:      false,
+			Message: fmt.Sprintf("Failed to store token: %v", err),
+		}
+	}
+	return LoginResult{
+		Ok:      true,
+		Message: serverResponse["message"],
+		Token:   token,
 	}
 }
