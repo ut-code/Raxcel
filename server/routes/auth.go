@@ -3,11 +3,14 @@ package routes
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/resend/resend-go/v3"
 	"github.com/ut-code/Raxcel/server/db"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -15,10 +18,6 @@ import (
 type RegisterRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
-}
-
-type VerifyEmailRequest struct {
-	Token string `json:"token"`
 }
 
 type LoginRequest struct {
@@ -99,12 +98,8 @@ func Register(c echo.Context) error {
 }
 
 func VerifyEmail(c echo.Context) error {
-	req := new(VerifyEmailRequest)
-	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "invalid request",
-		})
-	}
+	//TODO: use query params
+	reqToken := c.QueryParam("token")
 	database, err := db.ConnectDB()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
@@ -112,7 +107,7 @@ func VerifyEmail(c echo.Context) error {
 		})
 	}
 	var token db.Token
-	if err := database.Where("token = ?", req.Token).First(&token).Error; err != nil {
+	if err := database.Where("token = ?", reqToken).First(&token).Error; err != nil {
 		return c.JSON(http.StatusNotFound, map[string]string{
 			"error": "invalid verification token",
 		})
@@ -176,5 +171,16 @@ func generateSecureToken() string {
 
 func sendVerificationEmail(email, token string) error {
 	// Send email with resend
-	return nil
+	apiKey := os.Getenv("RESEND_API_KEY")
+	apiUrl := os.Getenv("API_URL")
+	client := resend.NewClient(apiKey)
+
+	params := &resend.SendEmailRequest{
+		From:    "Raxcel <noreply@raxcel.utcode.net>",
+		To:      []string{email},
+		Subject: "Verify your account",
+		Html:    fmt.Sprintf("<p>Click the link below to verify your email</p><a href=%s?token=%s></a>", apiUrl, token),
+	}
+	_, err := client.Emails.Send(params)
+	return err
 }
