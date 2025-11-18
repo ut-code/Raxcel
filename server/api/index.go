@@ -7,6 +7,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
+	"github.com/ut-code/Raxcel/server/db"
 	middleware "github.com/ut-code/Raxcel/server/middlewares"
 	"github.com/ut-code/Raxcel/server/routes"
 )
@@ -17,6 +18,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		if err := godotenv.Load(); err != nil {
 			log.Fatal("Error loading .env file")
 		}
+		db.Migrate()
 	}
 	e := echo.New()
 
