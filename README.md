@@ -18,7 +18,9 @@ touch .env # Then paste the secrets shared on Discord
 ```
 
 ## Development
+
 In one terminal,
+
 ```sh
 cd desktop
 wails dev
@@ -27,13 +29,16 @@ wails build
 wails build -tags webkit2_41 # build on linux
 ./build/bin/Raxcel # execute binary
 ```
+
 In another terminal,
+
 ```sh
 cd server
 go run main.go
 ```
 
 ## Deployment
+
 ```sh
 cd server
 vc --prod

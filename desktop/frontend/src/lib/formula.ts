@@ -78,7 +78,7 @@ function resolveRangeToArray(
     for (let row = minRow; row <= maxRow; row++) {
       const key = getCellKey(minCol, row);
       addDependency(currentCellKey, key);
-      
+
       if (grid[key]) {
         const value = parseFloat(grid[key].displayValue);
         values.push(isNaN(value) ? 0 : value);
@@ -88,14 +88,14 @@ function resolveRangeToArray(
     }
     return JSON.stringify(values);
   }
-  
+
   // 単一行の範囲（例: A1:C1）
   if (minRow === maxRow) {
     const values = [];
     for (let col = minCol; col <= maxCol; col++) {
       const key = getCellKey(col, minRow);
       addDependency(currentCellKey, key);
-      
+
       if (grid[key]) {
         const value = parseFloat(grid[key].displayValue);
         values.push(isNaN(value) ? 0 : value);
@@ -113,7 +113,7 @@ function resolveRangeToArray(
     for (let row = minRow; row <= maxRow; row++) {
       const key = getCellKey(col, row);
       addDependency(currentCellKey, key);
-      
+
       if (grid[key]) {
         const value = parseFloat(grid[key].displayValue);
         columnValues.push(isNaN(value) ? 0 : value);
@@ -161,10 +161,10 @@ function resolveFunctionCalls(formula: string): string {
   };
 
   let result = formula;
-  
+
   // 各関数を置き換え
   Object.entries(functionMap).forEach(([excelFunc, mathFunc]) => {
-    const regex = new RegExp(`\\b${excelFunc}\\(`, 'g');
+    const regex = new RegExp(`\\b${excelFunc}\\(`, "g");
     result = result.replace(regex, `${mathFunc}(`);
   });
 
@@ -204,7 +204,7 @@ export function resolveAll(
     grid,
     currentCellKey,
   );
-  
+
   // 2. 単一セル参照を解決
   const cellRefResolvedFormula = resolveCellReference(
     rangeResolvedFormula,
@@ -213,10 +213,8 @@ export function resolveAll(
   );
 
   // 3. 関数名をmathjsの関数に変換
-  const functionResolvedFormula = resolveFunctionCalls(
-    cellRefResolvedFormula,
-  );
-  
+  const functionResolvedFormula = resolveFunctionCalls(cellRefResolvedFormula);
+
   return functionResolvedFormula;
 }
 
