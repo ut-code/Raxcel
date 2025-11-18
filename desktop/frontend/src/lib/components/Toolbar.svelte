@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { goto } from "$app/navigation";
   import Chart from "$lib/components/Chart.svelte";
   import Xlsxloader from "$lib/components/Xlsxloader.svelte";
   import type { Cell } from "$lib/types";
@@ -46,13 +47,17 @@
         if (isLoggedIn) {
           isChatOpen = true;
         } else {
-          alert("login to chat with AI");
+          alert("sign in to chat with AI");
         }
       }}>Open AI Chat</button
     >
   {/if}
 
   <div>
-    <button class="btn">Do nothing</button>
+    <button class="btn" onclick={() => goto("/signin")}>Go to SignIn page</button>
+  </div>
+
+  <div>
+    <button class="btn" onclick={() => goto("/signup")}>Go to SignUp page</button>
   </div>
 </div>
