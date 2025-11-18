@@ -14,7 +14,7 @@ func getDBConfig() (string, error) {
 	user := os.Getenv("DB_USER")
 	password := os.Getenv("DB_PASSWORD")
 	dbname := os.Getenv("DB_NAME")
-	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable timeZoe=Asia/Singapore",
+	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable timeZone=Asia/Singapore",
 		host, port, user, password, dbname), nil
 }
 
