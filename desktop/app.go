@@ -35,12 +35,8 @@ func (a *App) Greet(name string) string {
 	return fmt.Sprintf("Hello %s, It's show time!", name)
 }
 
-type UserRequest struct {
+type ChatRequest struct {
 	Message string `json:"message"`
-}
-
-type ServerResponse struct {
-	AiMessage string `json:"aiMessage"`
 }
 
 type ChatResult struct {
@@ -49,7 +45,7 @@ type ChatResult struct {
 }
 
 func (a *App) ChatWithAI(message string) ChatResult {
-	postData := UserRequest{
+	postData := ChatRequest{
 		Message: message,
 	}
 	jsonData, err := json.Marshal(postData)
@@ -76,7 +72,7 @@ func (a *App) ChatWithAI(message string) ChatResult {
 			Message: fmt.Sprint(err),
 		}
 	}
-	var serverResponse ServerResponse
+	var serverResponse map[string]string
 	err = json.Unmarshal(body, &serverResponse)
 	if err != nil {
 		return ChatResult{
@@ -86,7 +82,7 @@ func (a *App) ChatWithAI(message string) ChatResult {
 	}
 	return ChatResult{
 		Ok:      true,
-		Message: serverResponse.AiMessage,
+		Message: serverResponse["aiMessage"],
 	}
 }
 
