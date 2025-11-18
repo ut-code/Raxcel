@@ -7,5 +7,4 @@ package.json.md5
 
 build/bin
 desktop/frontend/build
-desktop/frontend/src/lib/wailsjs
 go.work.sum
