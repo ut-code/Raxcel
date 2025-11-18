@@ -37,6 +37,11 @@ cd server
 go run main.go
 ```
 
+In another terminal,
+```sh
+docker compose up
+```
+
 ## Deployment
 
 ```sh
