@@ -21,5 +21,8 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 	e.GET("/", routes.Greet)
 	e.POST("/messages", routes.ChatWithAI)
+	e.POST("/register", routes.Register)
+	e.GET("/verify", routes.VerifyEmail)
+	e.POST("/login", routes.Login)
 	e.ServeHTTP(w, r)
 }

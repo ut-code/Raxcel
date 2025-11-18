@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/resend/resend-go/v3"
@@ -130,8 +131,6 @@ func VerifyEmail(c echo.Context) error {
 }
 
 func Login(c echo.Context) error {
-	// Validate Email and Password
-	// Store JWT in cookie
 	req := new(LoginRequest)
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
@@ -160,7 +159,16 @@ func Login(c echo.Context) error {
 			"error": "invalid email or password",
 		})
 	}
-	return nil
+	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
+		Issuer:    user.Id,
+		ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
+	})
+	secretKey := os.Getenv("SECRET_KEY")
+	signedToken, _ := claims.SignedString([]byte(secretKey))
+	return c.JSON(http.StatusOK, map[string]string{
+		"message": "logged in",
+		"token":   signedToken,
+	})
 }
 
 func generateSecureToken() string {
@@ -170,7 +178,6 @@ func generateSecureToken() string {
 }
 
 func sendVerificationEmail(email, token string) error {
-	// Send email with resend
 	apiKey := os.Getenv("RESEND_API_KEY")
 	apiUrl := os.Getenv("API_URL")
 	client := resend.NewClient(apiKey)
