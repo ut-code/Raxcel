@@ -14,14 +14,14 @@
     };
     messages.push(newUserMessage);
     isLoading = true;
-    const aiRes = await ChatWithAI(userMessage);
+    const res = await ChatWithAI(userMessage);
     userMessage = "";
-    if (!aiRes.ok) {
-      alert(`Error: ${aiRes.message}`);
+    if (!res.ok) {
+      alert(`Error: ${res.message}`);
     }
     const newAiMessage: Message = {
       author: "ai",
-      message: aiRes.message,
+      message: res.message,
     };
     messages.push(newAiMessage);
     isLoading = false;
