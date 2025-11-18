@@ -3,6 +3,7 @@ package routes
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -15,6 +16,7 @@ import (
 	"github.com/resend/resend-go/v3"
 	"github.com/ut-code/Raxcel/server/db"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type RegisterRequest struct {
@@ -51,13 +53,6 @@ func Register(c echo.Context) error {
 			"error": "failed to connect to database",
 		})
 	}
-	var existingUser db.User
-	result := database.Where("email = ?", req.Email).First(&existingUser)
-	if result.RowsAffected > 0 {
-		return c.JSON(http.StatusConflict, map[string]string{
-			"error": "email already registerd",
-		})
-	}
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, map[string]string{
@@ -71,6 +66,11 @@ func Register(c echo.Context) error {
 		IsVerified:   false,
 	}
 	if err := database.Create(&user).Error; err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return c.JSON(http.StatusConflict, map[string]string{
+				"error": "the email is already used",
+			})
+		}
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "failed to create user",
 		})

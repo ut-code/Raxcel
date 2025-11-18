@@ -23,7 +23,9 @@ func ConnectDB() (*gorm.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get database config: %w", err)
 	}
-	db, err := gorm.Open(postgres.Open(config), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(config), &gorm.Config{
+		TranslateError: true,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect database: %w", err)
 	}
