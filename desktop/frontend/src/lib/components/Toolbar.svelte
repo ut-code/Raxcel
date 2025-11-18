@@ -7,11 +7,13 @@
     chartComponent: Chart | null;
     grid: Record<string, Cell>;
     isChatOpen: boolean;
+    isLoggedIn: boolean;
   }
   let {
     chartComponent,
     grid = $bindable(),
     isChatOpen = $bindable(),
+    isLoggedIn = $bindable(),
   }: Props = $props();
 
   function handlerCreateChart() {
@@ -41,7 +43,11 @@
     <button
       class="btn"
       onclick={() => {
-        isChatOpen = true;
+        if (isLoggedIn) {
+          isChatOpen = true;
+        } else {
+          alert("login to chat with AI");
+        }
       }}>Open AI Chat</button
     >
   {/if}
