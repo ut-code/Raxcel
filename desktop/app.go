@@ -88,3 +88,65 @@ func (a *App) ChatWithAI(message string) ChatResult {
 		Message: serverResponse.AiMessage,
 	}
 }
+
+type RegisterRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type RegisterResult struct {
+	Ok      bool   `json:"ok"`
+	Message string `json:"message"`
+	UserId  string `json:"userId,omitempty"`
+}
+
+func (a *App) Register(email, password string) RegisterResult {
+	postData := RegisterRequest{
+		Email:    email,
+		Password: password,
+	}
+	jsonData, err := json.Marshal(postData)
+	if err != nil {
+		return RegisterResult{
+			Ok:      false,
+			Message: fmt.Sprintf("failed to marshal request: %v", err),
+		}
+	}
+	godotenv.Load()
+	apiUrl := os.Getenv("PUBLIC_API_URL")
+
+	resp, err := http.Post(fmt.Sprintf("%s/register", apiUrl), "application/json", bytes.NewReader(jsonData))
+	if err != nil {
+		return RegisterResult{
+			Ok:      false,
+			Message: fmt.Sprintf("Failed to send request: %v", err),
+		}
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return RegisterResult{
+			Ok:      false,
+			Message: fmt.Sprintf("Failed to read response: %v", err),
+		}
+	}
+	var serverResponse map[string]string
+	err = json.Unmarshal(body, &serverResponse)
+	if err != nil {
+		return RegisterResult{
+			Ok:      false,
+			Message: fmt.Sprintf("Failed to parse response: %v", err),
+		}
+	}
+	if resp.StatusCode != http.StatusCreated {
+		return RegisterResult{
+			Ok:      false,
+			Message: serverResponse["error"],
+		}
+	}
+	return RegisterResult{
+		Ok:      true,
+		Message: serverResponse["message"],
+		UserId:  serverResponse["userId"],
+	}
+}

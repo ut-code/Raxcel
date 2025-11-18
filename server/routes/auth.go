@@ -99,7 +99,6 @@ func Register(c echo.Context) error {
 }
 
 func VerifyEmail(c echo.Context) error {
-	//TODO: use query params
 	reqToken := c.QueryParam("token")
 	database, err := db.ConnectDB()
 	if err != nil {
