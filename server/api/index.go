@@ -7,6 +7,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
+	middleware "github.com/ut-code/Raxcel/server/middlewares"
 	"github.com/ut-code/Raxcel/server/routes"
 )
 
@@ -20,7 +21,9 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	e := echo.New()
 
 	e.GET("/", routes.Greet)
-	e.POST("/messages", routes.ChatWithAI)
+	messages := e.Group("/messages")
+	messages.Use(middleware.AuthMiddleware)
+	messages.POST("/", routes.ChatWithAI)
 	e.POST("/register", routes.Register)
 	e.GET("/verify", routes.VerifyEmail)
 	e.POST("/login", routes.Login)
