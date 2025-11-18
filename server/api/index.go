@@ -24,6 +24,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	messages := e.Group("/messages")
 	messages.Use(middleware.AuthMiddleware)
 	messages.POST("/", routes.ChatWithAI)
+	e.GET("/user", routes.CheckUser)
 	e.POST("/register", routes.Register)
 	e.GET("/verify-email", routes.VerifyEmail)
 	e.POST("/login", routes.Login)

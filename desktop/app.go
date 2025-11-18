@@ -174,7 +174,7 @@ type LoginRequest struct {
 type LoginResult struct {
 	Ok      bool   `json:"ok"`
 	Message string `json:"message"`
-	Token   string `json:"token"`
+	Token   string `json:"token,omitempty"`
 }
 
 func (a *App) Login(email, password string) LoginResult {
@@ -186,7 +186,7 @@ func (a *App) Login(email, password string) LoginResult {
 	if err != nil {
 		return LoginResult{
 			Ok:      false,
-			Message: fmt.Sprintf("Failed to marchal request: %v", err),
+			Message: fmt.Sprintf("Failed to marshal request: %v", err),
 		}
 	}
 	godotenv.Load()
@@ -235,5 +235,52 @@ func (a *App) Login(email, password string) LoginResult {
 		Ok:      true,
 		Message: serverResponse["message"],
 		Token:   token,
+	}
+}
+
+type CheckResult struct {
+	Ok     bool   `json:"ok"`
+	UserId string `json:"userId,omitempty"`
+	Error  string `json:"error,omitempty"`
+}
+
+func (a *App) CheckUser() CheckResult {
+	godotenv.Load()
+	apiUrl := os.Getenv("PUBLIC_API_URL")
+	token, _ := keyring.Get("Raxcel", "raxcel-user")
+	req, _ := http.NewRequest("GET", fmt.Sprintf("%s/user", apiUrl), nil)
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return CheckResult{
+			Ok:    false,
+			Error: fmt.Sprint(err),
+		}
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return CheckResult{
+			Ok:    false,
+			Error: fmt.Sprint(err),
+		}
+	}
+	var serverResponse map[string]string
+	if err := json.Unmarshal(body, &serverResponse); err != nil {
+		return CheckResult{
+			Ok:    false,
+			Error: fmt.Sprint(err),
+		}
+	}
+	if serverResponse["error"] != "" {
+		return CheckResult{
+			Ok:    false,
+			Error: serverResponse["error"],
+		}
+	}
+	return CheckResult{
+		Ok:     true,
+		UserId: serverResponse["userId"],
 	}
 }
