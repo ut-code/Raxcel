@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { goto } from "$app/navigation";
+  import { goto } from "$app/navigation";
   import Chart from "$lib/components/Chart.svelte";
   import Xlsxloader from "$lib/components/Xlsxloader.svelte";
   import type { Cell } from "$lib/types";
@@ -54,10 +54,14 @@
   {/if}
 
   <div>
-    <button class="btn" onclick={() => goto("/signin")}>Go to SignIn page</button>
+    <button class="btn" onclick={() => goto("/signin")}
+      >Go to SignIn page</button
+    >
   </div>
 
   <div>
-    <button class="btn" onclick={() => goto("/signup")}>Go to SignUp page</button>
+    <button class="btn" onclick={() => goto("/signup")}
+      >Go to SignUp page</button
+    >
   </div>
 </div>

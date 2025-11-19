@@ -1,12 +1,12 @@
 <script lang="ts">
   import { Register } from "$lib/wailsjs/go/main/App";
-  import { goto } from "$app/navigation";
 
   let email = $state("");
   let password = $state("");
   let confirmPassword = $state("");
   let error = $state("");
   let isLoading = $state(false);
+  let isSent = $state(false);
 
   async function handleRegister() {
     if (!email || !password || !confirmPassword) {
@@ -32,7 +32,7 @@
     isLoading = false;
 
     if (result.ok) {
-      goto("/signin"); // Redirect to sign in page after successful registration
+      isSent = true;
     } else {
       error = result.message;
     }
@@ -101,18 +101,46 @@
         />
       </div>
 
-      <div class="card-actions mt-6">
-        <button
-          class="btn btn-primary w-full"
-          onclick={handleRegister}
-          disabled={isLoading}
-        >
-          {#if isLoading}
-            <span class="loading loading-spinner"></span>
-          {/if}
-          Sign Up
-        </button>
-      </div>
+      {#if isSent}
+        <div class="alert alert-success mt-6">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="stroke-current shrink-0 h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <div>
+            <h3 class="font-bold">Check your email!</h3>
+            <div class="text-sm">
+              We've sent a verification link to <strong>{email}</strong>. Please
+              check your inbox and click the link to verify your account.
+            </div>
+          </div>
+        </div>
+        <div class="card-actions mt-4">
+          <a href="/signin" class="btn btn-outline w-full"> Go to Sign In </a>
+        </div>
+      {:else}
+        <div class="card-actions mt-6">
+          <button
+            class="btn btn-primary w-full"
+            onclick={handleRegister}
+            disabled={isLoading}
+          >
+            {#if isLoading}
+              <span class="loading loading-spinner"></span>
+            {/if}
+            Sign Up
+          </button>
+        </div>
+      {/if}
 
       <div class="text-center mt-4">
         <a href="/signin" class="link link-primary">
