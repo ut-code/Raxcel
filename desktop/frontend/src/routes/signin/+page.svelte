@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Login } from "$lib/wailsjs/go/main/App";
-  import { goto } from "$app/navigation";
+  import { authState } from "$lib/stores/auth.svelte";
 
   let email = $state("");
   let password = $state("");
@@ -21,7 +21,7 @@
     isLoading = false;
 
     if (result.ok) {
-      goto("/"); // Redirect to main page on success
+      authState.login();
     } else {
       error = result.message;
     }
@@ -75,18 +75,43 @@
         />
       </div>
 
-      <div class="card-actions mt-6">
-        <button
-          class="btn btn-primary w-full"
-          onclick={handleLogin}
-          disabled={isLoading}
-        >
-          {#if isLoading}
-            <span class="loading loading-spinner"></span>
-          {/if}
-          Sign In
-        </button>
-      </div>
+      {#if authState.isLoggedIn}
+        <div class="alert alert-success mt-6">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="stroke-current shrink-0 h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <div>
+            <h3 class="font-bold">Welcome back!</h3>
+            <div class="text-sm">You're now signed in.</div>
+          </div>
+        </div>
+        <div class="card-actions mt-4">
+          <a href="/" class="btn btn-primary w-full"> Go to Home </a>
+        </div>
+      {:else}
+        <div class="card-actions mt-6">
+          <button
+            class="btn btn-primary w-full"
+            onclick={handleLogin}
+            disabled={isLoading}
+          >
+            {#if isLoading}
+              <span class="loading loading-spinner"></span>
+            {/if}
+            Sign In
+          </button>
+        </div>
+      {/if}
 
       <div class="text-center mt-4">
         <a href="/signup" class="link link-primary">

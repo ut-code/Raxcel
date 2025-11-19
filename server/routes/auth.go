@@ -143,10 +143,10 @@ func Login(c echo.Context) error {
 	}
 	if !user.IsVerified {
 		return c.JSON(http.StatusForbidden, map[string]string{
-			"error": "email not verifies",
+			"error": "email not verified",
 		})
 	}
-	if err := bcrypt.CompareHashAndPassword([]byte(req.Password), []byte(user.PasswordHash)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
 		return c.JSON(http.StatusUnauthorized, map[string]string{
 			"error": "invalid email or password",
 		})
