@@ -89,6 +89,7 @@ func Register(c echo.Context) error {
 	}
 
 	if err := sendVerificationEmail(user.Email, tokenString); err != nil {
+		fmt.Println(err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "failed to send verification email",
 		})
@@ -100,34 +101,25 @@ func Register(c echo.Context) error {
 }
 
 func VerifyEmail(c echo.Context) error {
+	//TODO: send html instead of json
 	reqToken := c.QueryParam("token")
 	database, err := db.ConnectDB()
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"error": "failed to connect to database",
-		})
+		return c.String(http.StatusInternalServerError, "failed to connect to database")
 	}
 	var token db.Token
 	if err := database.Where("token = ?", reqToken).First(&token).Error; err != nil {
-		return c.JSON(http.StatusNotFound, map[string]string{
-			"error": "invalid verification token",
-		})
+		return c.String(http.StatusNotFound, "invalid verification token")
 	}
 
 	if time.Now().After(token.ExpiresAt) {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "verification token has expired",
-		})
+		return c.String(http.StatusBadRequest, "verification token has expired")
 	}
 	if err := database.Model(&db.User{}).Where("id = ?", token.UserId).Update("is_verified", true).Error; err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"error": "failed to verify user",
-		})
+		return c.String(http.StatusInternalServerError, "failed to verify user")
 	}
 	database.Delete(&token)
-	return c.JSON(http.StatusOK, map[string]string{
-		"message": "email verified",
-	})
+	return c.String(http.StatusOK, "email verified!")
 }
 
 func Login(c echo.Context) error {
@@ -186,7 +178,7 @@ func sendVerificationEmail(email, token string) error {
 		From:    "Raxcel <noreply@raxcel.utcode.net>",
 		To:      []string{email},
 		Subject: "Verify your account",
-		Html:    fmt.Sprintf("<p>Click the link below to verify your email</p><a href=%s?token=%s></a>", apiUrl, token),
+		Html:    fmt.Sprintf("<p>Click the link below to verify your email</p><a href=%s/verify-email?token=%s>Click here!</a>", apiUrl, token),
 	}
 	_, err := client.Emails.Send(params)
 	return err
