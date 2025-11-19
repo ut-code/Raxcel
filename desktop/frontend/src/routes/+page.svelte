@@ -12,6 +12,7 @@
   import Chat from "$lib/components/Chat.svelte";
   import { CheckUser } from "$lib/wailsjs/go/main/App";
   import { onMount } from "svelte";
+  import { authState } from "$lib/stores/auth.svelte";
 
   const rowCount = 1000;
   const colCount = 1000;
@@ -20,12 +21,11 @@
 
   // global state
   let grid = $state<Record<string, CellType>>({});
-  let isLoggedIn = $state(false);
   onMount(() => {
     const checkUser = async () => {
       const result = await CheckUser();
       if (result.ok) {
-        isLoggedIn = true;
+        authState.login;
       }
     };
     checkUser();
@@ -218,7 +218,12 @@
 </script>
 
 <div class="h-screen flex flex-col">
-  <Toolbar {chartComponent} bind:grid bind:isChatOpen bind:isLoggedIn />
+  <Toolbar
+    {chartComponent}
+    bind:grid
+    bind:isChatOpen
+    isLoggedIn={authState.isLoggedIn}
+  />
 
   <div bind:this={virtualListEl} class="flex-1 w-full overflow-auto">
     <div

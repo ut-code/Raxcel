@@ -14,7 +14,7 @@
     chartComponent,
     grid = $bindable(),
     isChatOpen = $bindable(),
-    isLoggedIn = $bindable(),
+    isLoggedIn,
   }: Props = $props();
 
   function handlerCreateChart() {
