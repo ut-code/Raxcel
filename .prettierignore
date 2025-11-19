@@ -5,3 +5,7 @@ coverage
 .svelte-kit
 node_modules
 src-tauri
+
+# automatically generated
+desktop/frontend/src/lib/wailsjs/go
+desktop/frontend/src/lib/wailsjs/runtime
