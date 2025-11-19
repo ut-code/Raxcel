@@ -1,5 +1,11 @@
 pre-commit:
   commands:
-    format:
+    format-frontend:
       glob: "*.{js, ts, svelte, json}"
       run: bunx prettier --write {staged_files} && git add {staged_files}
+    format-go:
+      glob: "*.go"
+      run: gofmt -w {staged_files} && git add {staged_files}
+    go-mod-tidy:
+      glob: "go.{mod,sum}"
+      run: go mod tidy && git add {staged_files}

@@ -6,4 +6,5 @@ node_modules
 package.json.md5
 
 build/bin
-frontend/build
+desktop/frontend/build
+go.work.sum

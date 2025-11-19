@@ -7,10 +7,13 @@ toolchain go1.24.6
 require (
 	github.com/joho/godotenv v1.5.1
 	github.com/wailsapp/wails/v2 v2.10.2
+	github.com/zalando/go-keyring v0.2.6
 )
 
 require (
+	al.essio.dev/pkg/shellescape v1.5.1 // indirect
 	github.com/bep/debounce v1.2.1 // indirect
+	github.com/danieljoos/wincred v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect

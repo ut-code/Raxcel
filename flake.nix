@@ -16,6 +16,7 @@
           packages = with pkgs; [
             wails
             nodePackages.vercel
+            postgresql
           ];
         };
       }

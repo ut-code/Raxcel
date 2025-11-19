@@ -10,6 +10,9 @@
   import { SvelteSet } from "svelte/reactivity";
   import { type Readable } from "svelte/store";
   import Chat from "$lib/components/Chat.svelte";
+  import { CheckUser } from "$lib/wailsjs/go/main/App";
+  import { onMount } from "svelte";
+  import { authState } from "$lib/stores/auth.svelte";
 
   const rowCount = 1000;
   const colCount = 1000;
@@ -18,6 +21,15 @@
 
   // global state
   let grid = $state<Record<string, CellType>>({});
+  onMount(() => {
+    const checkUser = async () => {
+      const result = await CheckUser();
+      if (result.ok) {
+        authState.login;
+      }
+    };
+    checkUser();
+  });
 
   // Function to update the grid
   function updateGrid(x: number, y: number, cellData: Partial<CellType>) {
@@ -206,7 +218,12 @@
 </script>
 
 <div class="h-screen flex flex-col">
-  <Toolbar {chartComponent} bind:grid bind:isChatOpen />
+  <Toolbar
+    {chartComponent}
+    bind:grid
+    bind:isChatOpen
+    isLoggedIn={authState.isLoggedIn}
+  />
 
   <div bind:this={virtualListEl} class="flex-1 w-full overflow-auto">
     <div
