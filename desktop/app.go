@@ -14,14 +14,14 @@ import (
 	"net/http"
 )
 
-var ApiUrl string
+var apiURL string
 
 func getApiUrl() string {
-	if ApiUrl == "" {
-		apiUrl := os.Getenv("PUBLIC_API_URL")
+	if apiURL == "" {
+		apiUrl := os.Getenv("PUBLIC_API_KEY")
 		return apiUrl
 	}
-	return ApiUrl
+	return apiURL
 }
 
 // App struct
