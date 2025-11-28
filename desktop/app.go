@@ -16,7 +16,7 @@ import (
 
 var apiURL string
 
-func getApiUrl() string {
+func getAPIURL() string {
 	if apiURL == "" {
 		apiUrl := os.Getenv("PUBLIC_API_KEY")
 		return apiUrl
