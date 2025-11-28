@@ -45,6 +45,7 @@ jobs:
         run: |
           wails build -nsis -platform windows/amd64 \
             -ldflags "-X main.ApiUrl=${{ secrets.PUBLIC_API_URL }}"
+        working-directory: desktop
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
