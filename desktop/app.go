@@ -18,7 +18,7 @@ var ApiUrl string
 
 func getApiUrl() string {
 	if ApiUrl == "" {
-		apiUrl := os.Getenv("PUBLIC_API_KEY")
+		apiUrl := os.Getenv("PUBLIC_API_URL")
 		return apiUrl
 	}
 	return ApiUrl
