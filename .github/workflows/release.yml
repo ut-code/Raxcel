@@ -1,0 +1,55 @@
+name: Wails Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+env:
+  GO_VERSION: "1.21"
+  NODE_VERSION: "20"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: "**/go.sum"
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: "**/package-lock.json"
+
+      - name: Install Windows cross-compilation toolchain
+        run: sudo apt-get update && sudo apt-get install -y mingw-w64
+
+      - name: Install NSIS for Windows Installer
+        run: sudo apt-get install -y nsis
+
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+      - name: Build Wails Application
+        run: |
+          wails build -nsis -platform windows/amd64 \
+            -ldflags "-X main.ApiUrl=${{ secrets.PUBLIC_API_URL }}"
+        working-directory: desktop
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: desktop/build/bin/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

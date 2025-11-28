@@ -5,6 +5,6 @@ node_modules
 .env.prod
 package.json.md5
 
-build/bin
+desktop/build/bin
 desktop/frontend/build
 go.work.sum
