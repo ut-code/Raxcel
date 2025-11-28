@@ -14,6 +14,16 @@ import (
 	"net/http"
 )
 
+var ApiUrl string
+
+func getApiUrl() string {
+	if ApiUrl == "" {
+		apiUrl := os.Getenv("PUBLIC_API_KEY")
+		return apiUrl
+	}
+	return ApiUrl
+}
+
 // App struct
 type App struct {
 	ctx context.Context
@@ -56,7 +66,7 @@ func (a *App) ChatWithAI(message string) ChatResult {
 		}
 	}
 	godotenv.Load(".env")
-	apiUrl := os.Getenv("PUBLIC_API_URL")
+	apiUrl := getApiUrl()
 	jwt, err := keyring.Get("Raxcel", "raxcel-user")
 	if err != nil {
 		return ChatResult{
@@ -128,7 +138,7 @@ func (a *App) Register(email, password string) RegisterResult {
 		}
 	}
 	godotenv.Load()
-	apiUrl := os.Getenv("PUBLIC_API_URL")
+	apiUrl := getApiUrl()
 
 	resp, err := http.Post(fmt.Sprintf("%s/register", apiUrl), "application/json", bytes.NewReader(jsonData))
 	if err != nil {
@@ -190,7 +200,7 @@ func (a *App) Login(email, password string) LoginResult {
 		}
 	}
 	godotenv.Load()
-	apiUrl := os.Getenv("PUBLIC_API_URL")
+	apiUrl := getApiUrl()
 
 	resp, err := http.Post(fmt.Sprintf("%s/login", apiUrl), "application/json", bytes.NewReader(jsonData))
 	if err != nil {
@@ -246,7 +256,7 @@ type CheckResult struct {
 
 func (a *App) CheckUser() CheckResult {
 	godotenv.Load()
-	apiUrl := os.Getenv("PUBLIC_API_URL")
+	apiUrl := getApiUrl()
 	token, _ := keyring.Get("Raxcel", "raxcel-user")
 	req, _ := http.NewRequest("GET", fmt.Sprintf("%s/user", apiUrl), nil)
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
