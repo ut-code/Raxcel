@@ -7,7 +7,6 @@ on:
 
 env:
   GO_VERSION: "1.21"
-  NODE_VERSION: "20"
 
 defaults:
   run:
@@ -29,12 +28,13 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: "**/go.sum"
 
-      - name: Install Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
-          cache-dependency-path: "**/package-lock.json"
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+
+      - name: Install frontend deps with Bun
+        run: |
+          cd frontend
+          bun install
 
       - name: Install Windows cross-compilation toolchain
         run: sudo apt-get update && sudo apt-get install -y mingw-w64
