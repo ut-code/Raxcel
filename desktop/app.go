@@ -66,7 +66,7 @@ func (a *App) ChatWithAI(message string) ChatResult {
 		}
 	}
 	godotenv.Load(".env")
-	apiUrl := getApiUrl()
+	apiUrl := getAPIURL()
 	jwt, err := keyring.Get("Raxcel", "raxcel-user")
 	if err != nil {
 		return ChatResult{
@@ -138,7 +138,7 @@ func (a *App) Register(email, password string) RegisterResult {
 		}
 	}
 	godotenv.Load()
-	apiUrl := getApiUrl()
+	apiUrl := getAPIURL()
 
 	resp, err := http.Post(fmt.Sprintf("%s/register", apiUrl), "application/json", bytes.NewReader(jsonData))
 	if err != nil {
@@ -200,7 +200,7 @@ func (a *App) Login(email, password string) LoginResult {
 		}
 	}
 	godotenv.Load()
-	apiUrl := getApiUrl()
+	apiUrl := getAPIURL()
 
 	resp, err := http.Post(fmt.Sprintf("%s/login", apiUrl), "application/json", bytes.NewReader(jsonData))
 	if err != nil {
@@ -256,7 +256,7 @@ type CheckResult struct {
 
 func (a *App) CheckUser() CheckResult {
 	godotenv.Load()
-	apiUrl := getApiUrl()
+	apiUrl := getAPIURL()
 	token, _ := keyring.Get("Raxcel", "raxcel-user")
 	req, _ := http.NewRequest("GET", fmt.Sprintf("%s/user", apiUrl), nil)
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
