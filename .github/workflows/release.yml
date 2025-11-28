@@ -9,6 +9,10 @@ env:
   GO_VERSION: "1.21"
   NODE_VERSION: "20"
 
+defaults:
+  run:
+    working-directory: desktop
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -45,7 +49,6 @@ jobs:
         run: |
           wails build -nsis -platform windows/amd64 \
             -ldflags "-X main.ApiUrl=${{ secrets.PUBLIC_API_URL }}"
-        working-directory: desktop
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
