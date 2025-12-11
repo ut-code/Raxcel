@@ -9,14 +9,25 @@
     Tooltip,
     Legend,
   } from "chart.js/auto";
+  import type { SvelteSet } from "svelte/reactivity";
 
   Chart.register(ScatterController, LinearScale, PointElement, Tooltip, Legend);
 
   interface Props {
-    selectedValues: string[];
+    grid: Record<string, CellType>;
+    selectedCells: SvelteSet<string>;
   }
 
-  let { selectedValues = [] }: Props = $props();
+  let { grid, selectedCells }: Props = $props();
+
+  let selectedValues: string[] = $derived(
+    Array.from(selectedCells)
+      .map((key) => {
+        const cell = grid[key];
+        return cell?.displayValue || "";
+      })
+      .filter((val) => val !== ""),
+  );
   let chartInstance: Chart | null = null;
   let canvasRef: HTMLCanvasElement;
 
