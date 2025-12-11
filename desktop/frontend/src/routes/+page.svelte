@@ -118,10 +118,11 @@
   }
 
   function updateSelection(startCell: CellType, endCell: CellType) {
-    selectedCells.clear();
-    for (const cell of Object.values(grid)) {
-      cell.isSelected = false;
+    for (const key of selectedCells) {
+      const cell = grid[key]
+      if (cell) cell.isSelected = false
     }
+    selectedCells.clear();
 
     const startX = Math.min(startCell.x, endCell.x);
     const endX = Math.max(startCell.x, endCell.x);
