@@ -31,15 +31,6 @@
     checkUser();
   });
 
-  // Function to update the grid
-  function updateGrid(x: number, y: number, cellData: Partial<CellType>) {
-    const key = `${x}-${y}`;
-    grid[key] = {
-      ...grid[key],
-      ...cellData,
-    };
-  }
-
   // to select cells
   let leftTopCell: CellType | null = $state(null);
   let isDragging = $state(false);
