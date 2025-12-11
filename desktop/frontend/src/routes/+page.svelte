@@ -14,7 +14,7 @@
     const checkUser = async () => {
       const result = await CheckUser();
       if (result.ok) {
-        authState.login;
+        authState.login();
       }
     };
     checkUser();

@@ -18,7 +18,8 @@ var apiURL string
 
 func getAPIURL() string {
 	if apiURL == "" {
-		apiUrl := os.Getenv("PUBLIC_API_KEY")
+		godotenv.Load()
+		apiUrl := os.Getenv("PUBLIC_API_URL")
 		return apiUrl
 	}
 	return apiURL
@@ -65,7 +66,6 @@ func (a *App) ChatWithAI(message string) ChatResult {
 			Message: fmt.Sprint(err),
 		}
 	}
-	godotenv.Load(".env")
 	apiUrl := getAPIURL()
 	jwt, err := keyring.Get("Raxcel", "raxcel-user")
 	if err != nil {
@@ -137,7 +137,6 @@ func (a *App) Register(email, password string) RegisterResult {
 			Message: fmt.Sprintf("failed to marshal request: %v", err),
 		}
 	}
-	godotenv.Load()
 	apiUrl := getAPIURL()
 
 	resp, err := http.Post(fmt.Sprintf("%s/register", apiUrl), "application/json", bytes.NewReader(jsonData))
@@ -199,7 +198,6 @@ func (a *App) Login(email, password string) LoginResult {
 			Message: fmt.Sprintf("Failed to marshal request: %v", err),
 		}
 	}
-	godotenv.Load()
 	apiUrl := getAPIURL()
 
 	resp, err := http.Post(fmt.Sprintf("%s/login", apiUrl), "application/json", bytes.NewReader(jsonData))
@@ -255,7 +253,6 @@ type CheckResult struct {
 }
 
 func (a *App) CheckUser() CheckResult {
-	godotenv.Load()
 	apiUrl := getAPIURL()
 	token, _ := keyring.Get("Raxcel", "raxcel-user")
 	req, _ := http.NewRequest("GET", fmt.Sprintf("%s/user", apiUrl), nil)
