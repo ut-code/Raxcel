@@ -1,12 +1,19 @@
 package main
 
 import (
-	"net/http"
+	"log"
 
+	"github.com/joho/godotenv"
 	"github.com/ut-code/Raxcel/server/api"
+	"github.com/ut-code/Raxcel/server/db"
 )
 
 func main() {
-	http.HandleFunc("/", api.Handler)
-	http.ListenAndServe(":8080", nil)
+
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Error loading .env file")
+	}
+	db.Migrate()
+	e := api.SetupRouter()
+	log.Fatal(e.Start(":8080"))
 }
