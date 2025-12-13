@@ -2,7 +2,8 @@
   "name": "raxcel",
   "module": "index.ts",
   "scripts": {
-    "dev": "concurrently 'cd desktop && wails dev -tags webkit2_41' 'cd server && go run main.go' 'docker compose up'",
+    "dev": "docker compose up -d && concurrently 'bun run dev:server' 'cd desktop && wails dev -tags webkit2_41'",
+    "dev:server": "wait-on tcp:5432 && cd server && go run main.go",
     "format": "bunx prettier . --write"
   },
   "devDependencies": {
@@ -10,7 +11,8 @@
     "concurrently": "^9.2.1",
     "lefthook": "^1.12.3",
     "prettier": "^3.6.2",
-    "prettier-plugin-svelte": "^3.4.0"
+    "prettier-plugin-svelte": "^3.4.0",
+    "wait-on": "^9.0.3"
   },
   "peerDependencies": {
     "typescript": "^5"
