@@ -8,8 +8,8 @@ import (
 	"io"
 	"os"
 
+	"github.com/99designs/keyring"
 	"github.com/joho/godotenv"
-	"github.com/zalando/go-keyring"
 
 	"net/http"
 )
@@ -55,6 +55,22 @@ type ChatResult struct {
 	Message string `json:"message"`
 }
 
+func getKeyring() keyring.Keyring {
+	ring, err := keyring.Open(keyring.Config{
+		ServiceName: "Raxcel",
+		AllowedBackends: []keyring.BackendType{
+			keyring.SecretServiceBackend,
+			keyring.KeychainBackend,
+			keyring.WinCredBackend,
+			keyring.FileBackend,
+		},
+	})
+	if err != nil {
+		fmt.Println(err)
+	}
+	return ring
+}
+
 func (a *App) ChatWithAI(message string) ChatResult {
 	postData := ChatRequest{
 		Message: message,
@@ -67,7 +83,9 @@ func (a *App) ChatWithAI(message string) ChatResult {
 		}
 	}
 	apiUrl := getAPIURL()
-	jwt, err := keyring.Get("Raxcel", "raxcel-user")
+	ring := getKeyring()
+	item, err := ring.Get("raxcel-user")
+	jwt := item.Data
 	if err != nil {
 		return ChatResult{
 			Ok:      false,
@@ -232,7 +250,11 @@ func (a *App) Login(email, password string) LoginResult {
 		}
 	}
 	token := serverResponse["token"]
-	err = keyring.Set("Raxcel", "raxcel-user", token)
+	ring := getKeyring()
+	err = ring.Set(keyring.Item{
+		Key:  "raxcel-user",
+		Data: []byte(token),
+	})
 	if err != nil {
 		return LoginResult{
 			Ok:      false,
@@ -254,7 +276,9 @@ type CheckResult struct {
 
 func (a *App) CheckUser() CheckResult {
 	apiUrl := getAPIURL()
-	token, _ := keyring.Get("Raxcel", "raxcel-user")
+	ring := getKeyring()
+	item, _ := ring.Get("raxcel-user")
+	token := item.Data
 	req, _ := http.NewRequest("GET", fmt.Sprintf("%s/user", apiUrl), nil)
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 	client := &http.Client{}
