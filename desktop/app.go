@@ -14,6 +14,15 @@ import (
 	"net/http"
 )
 
+// ANSIカラーコード
+const (
+	ColorReset  = "\033[0m"
+	ColorRed    = "\033[31m"
+	ColorGreen  = "\033[32m"
+	ColorYellow = "\033[33m"
+	ColorCyan   = "\033[36m"
+)
+
 var apiURL string
 
 func getAPIURL() string {
@@ -58,7 +67,7 @@ type ChatResult struct {
 func getKeyring() keyring.Keyring {
 	homedir, err := os.UserHomeDir()
 	if err != nil {
-		fmt.Println("Failed to get home directory")
+		fmt.Println(ColorRed + "Failed to get home directory" + ColorReset)
 	}
 	ring, err := keyring.Open(keyring.Config{
 		ServiceName: "Raxcel",
@@ -71,7 +80,7 @@ func getKeyring() keyring.Keyring {
 		FileDir: homedir + "/.config/raxcel",
 	})
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(ColorRed + "Failed to get keyring: " + err.Error() + ColorReset)
 	}
 	return ring
 }
@@ -255,12 +264,14 @@ func (a *App) Login(email, password string) LoginResult {
 		}
 	}
 	token := serverResponse["token"]
+	fmt.Println(ColorGreen + "You got the token: " + ColorReset + ColorCyan + token + ColorReset)
 	ring := getKeyring()
 	err = ring.Set(keyring.Item{
 		Key:  "raxcel-user",
 		Data: []byte(token),
 	})
 	if err != nil {
+		fmt.Print(ColorRed + "Failed to set token" + ColorReset)
 		return LoginResult{
 			Ok:      false,
 			Message: fmt.Sprintf("Failed to store token: %v", err),
