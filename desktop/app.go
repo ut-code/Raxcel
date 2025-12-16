@@ -56,6 +56,10 @@ type ChatResult struct {
 }
 
 func getKeyring() keyring.Keyring {
+	homedir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Println("Failed to get home directory")
+	}
 	ring, err := keyring.Open(keyring.Config{
 		ServiceName: "Raxcel",
 		AllowedBackends: []keyring.BackendType{
@@ -64,6 +68,7 @@ func getKeyring() keyring.Keyring {
 			keyring.WinCredBackend,
 			keyring.FileBackend,
 		},
+		FileDir: homedir + "/.config/raxcel",
 	})
 	if err != nil {
 		fmt.Println(err)
