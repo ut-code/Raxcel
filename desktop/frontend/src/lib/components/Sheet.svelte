@@ -14,7 +14,6 @@
   }
   let { grid = $bindable(), selectedCells = $bindable() }: Props = $props();
 
-  // virtual scroll
   let virtualListEl: HTMLDivElement;
   let rowVirtualizer:
     | Readable<SvelteVirtualizer<HTMLDivElement, HTMLDivElement>>
@@ -49,11 +48,9 @@
     }
   });
 
-  // cell utility
   function getCell(x: number, y: number): CellType {
     const key = `${x}-${y}`;
     let cell = grid[key];
-    // If cell is undefined, initialize it.
     if (!cell) {
       cell = {
         x,
@@ -67,9 +64,19 @@
     return cell;
   }
 
-  function setCell(newCell: CellType) {
-    const key = `${newCell.x}-${newCell.y}`;
-    grid[key] = newCell;
+  function ensureCell(x: number, y: number): CellType {
+    const key = `${x}-${y}`;
+    if (!grid[key]) {
+      grid[key] = {
+        x,
+        y,
+        rawValue: "",
+        displayValue: "",
+        isSelected: false,
+        isEditing: false,
+      };
+    }
+    return grid[key];
   }
 
   function getCellKey(x: number, y: number): string {
@@ -81,19 +88,20 @@
     if (!(target instanceof Element)) {
       return null;
     }
-    // get the element by data-cell-loc attribute
     const cellEl = target.closest("[data-cell-loc]");
     if (!cellEl) return null;
     const coords = cellEl.getAttribute("data-cell-loc");
     if (!coords) return null;
     const [x, y] = coords.split("-").map(Number);
-    return getCell(x, y);
+    return ensureCell(x, y);
   }
 
   function updateSelection(startCell: CellType, endCell: CellType) {
     for (const key of selectedCells) {
       const cell = grid[key];
-      if (cell) cell.isSelected = false;
+      if (cell) {
+        cell.isSelected = false;
+      }
     }
     selectedCells.clear();
 
@@ -106,19 +114,23 @@
       for (let x = startX; x <= endX; x++) {
         const key = getCellKey(x, y);
         selectedCells.add(key);
-        const cell = getCell(x, y);
+        const cell = ensureCell(x, y);
         cell.isSelected = true;
       }
     }
   }
 
   function handleMouseDown(event: MouseEvent) {
-    selectedCells.clear();
-    for (const cell of Object.values(grid)) {
-      cell.isSelected = false;
+    for (const key of selectedCells) {
+      const cell = grid[key];
+      if (cell) {
+        cell.isSelected = false;
+      }
     }
+    selectedCells.clear();
 
     const cell = convertEventLocToCell(event);
+
     if (cell) {
       leftTopCell = cell;
       isDragging = true;
@@ -161,7 +173,7 @@
           cell.isEditing = false;
         }
         selectedCells.clear();
-        const nextCell = getCell(currentCell.x, nextY);
+        const nextCell = ensureCell(currentCell.x, nextY);
         nextCell.isSelected = true;
         nextCell.isEditing = true;
         selectedCells.add(getCellKey(currentCell.x, nextY));
@@ -176,50 +188,49 @@
         cell.displayValue = "";
         cell.rawValue = "";
         cell.isSelected = false;
-        grid[key] = { ...cell };
       }
     }
   }
 </script>
 
 <div bind:this={virtualListEl} class="flex-1 w-full overflow-auto">
-  <div
-    class="relative"
-    style={`
-      height: ${$rowVirtualizer?.getTotalSize()}px;
-      width: ${$columnVirtualizer?.getTotalSize()}px;
-    `}
-    onmousemove={handleMouseMove}
-    onkeydown={(event: KeyboardEvent) => {
-      if (event.key === "Delete" || event.key === "Backspace") {
-        handleDelete();
-      }
-    }}
-    role="grid"
-    tabindex="0"
-  >
-    {#each $rowVirtualizer?.getVirtualItems() ?? [] as row (row.index)}
-      {#each $columnVirtualizer?.getVirtualItems() ?? [] as col (col.index)}
-        <div
-          class="absolute top-0 left-0"
-          style={`
-              width: ${col.size}px;
-              height: ${row.size}px;
-              transform: translateX(${col.start}px) translateY(${row.start}px);
-           `}
-          data-cell-loc={`${col.index}-${row.index}`}
-        >
-          <Cell
-            bind:cell={
-              () => getCell(col.index, row.index), (cell) => setCell(cell)
-            }
-            bind:grid
-            onMouseDown={handleMouseDown}
-            onMouseUp={handleMouseUp}
-            onEnterPress={handleEnterPress}
-          />
-        </div>
+  {#if $rowVirtualizer && $columnVirtualizer}
+    <div
+      class="relative"
+      style={`
+        height: ${$rowVirtualizer.getTotalSize()}px;
+        width: ${$columnVirtualizer.getTotalSize()}px;
+      `}
+      onmousemove={handleMouseMove}
+      onkeydown={(event: KeyboardEvent) => {
+        if (event.key === "Delete" || event.key === "Backspace") {
+          handleDelete();
+        }
+      }}
+      role="grid"
+      tabindex="0"
+    >
+      {#each $rowVirtualizer.getVirtualItems() as row (row.index)}
+        {#each $columnVirtualizer.getVirtualItems() as col (col.index)}
+          <div
+            class="absolute top-0 left-0"
+            style={`
+                width: ${col.size}px;
+                height: ${row.size}px;
+                transform: translateX(${col.start}px) translateY(${row.start}px);
+             `}
+            data-cell-loc={`${col.index}-${row.index}`}
+          >
+            <Cell
+              cell={getCell(col.index, row.index)}
+              bind:grid
+              onMouseDown={handleMouseDown}
+              onMouseUp={handleMouseUp}
+              onEnterPress={handleEnterPress}
+            />
+          </div>
+        {/each}
       {/each}
-    {/each}
-  </div>
+    </div>
+  {/if}
 </div>

@@ -13,12 +13,32 @@
   }
 
   let {
-    cell = $bindable(),
+    cell,
     grid = $bindable(),
     onMouseDown,
     onMouseUp,
     onEnterPress,
   }: Props = $props();
+
+  let localCell = $state({
+    x: cell.x,
+    y: cell.y,
+    rawValue: cell.rawValue,
+    displayValue: cell.displayValue,
+    isSelected: cell.isSelected,
+    isEditing: cell.isEditing,
+  });
+
+  $effect(() => {
+    localCell = {
+      x: cell.x,
+      y: cell.y,
+      rawValue: cell.rawValue,
+      displayValue: cell.displayValue,
+      isSelected: cell.isSelected,
+      isEditing: cell.isEditing,
+    };
+  });
 
   const focusInput: Action = (node) => {
     node.focus();
@@ -28,27 +48,32 @@
   };
 
   const processCell = () => {
-    const cellKey = `${cell.x}-${cell.y}`;
-    if (cell.rawValue[0] === "=") {
+    const cellKey = `${localCell.x}-${localCell.y}`;
+    if (localCell.rawValue[0] === "=") {
       try {
-        const formula = cell.rawValue.slice(1);
+        const formula = localCell.rawValue.slice(1);
         const resolvedFormula = resolveAll(formula, grid, cellKey);
-        cell.displayValue = evaluate(resolvedFormula);
+        const result = evaluate(resolvedFormula);
+        localCell.displayValue = String(result);
       } catch (error) {
-        cell.displayValue = "#ERROR";
+        localCell.displayValue = "#ERROR";
       }
     } else {
-      cell.displayValue = cell.rawValue;
+      localCell.displayValue = localCell.rawValue;
     }
-    // Update the grid with the new cell value
-    grid[cellKey] = { ...cell };
-    // Update dependent cells
+
+    grid[cellKey] = {
+      x: localCell.x,
+      y: localCell.y,
+      rawValue: localCell.rawValue,
+      displayValue: localCell.displayValue,
+      isSelected: localCell.isSelected,
+      isEditing: localCell.isEditing,
+    };
+
     updateCell(cellKey, grid);
   };
 
-  const parseRawValue: Action = (_node) => {
-    processCell();
-  };
   function getCellHeader(x: number, y: number): string {
     if (x === 0 && y > 0) {
       return y.toString();
@@ -67,48 +92,52 @@
   }
 </script>
 
-{#if cell.x === 0 || cell.y === 0}
+{#if localCell.x === 0 || localCell.y === 0}
   <div class="w-full h-full text-center border border-gray-300 box-border">
-    {getCellHeader(cell.x, cell.y)}
+    {getCellHeader(localCell.x, localCell.y)}
   </div>
-{:else if cell.isEditing}
+{:else if localCell.isEditing}
   <input
     type="text"
     class="w-full h-full border border-gray-300 box-border cursor-pointer bg-white"
-    bind:value={cell.rawValue}
+    bind:value={localCell.rawValue}
     use:focusInput
     onkeydown={(event: KeyboardEvent) => {
       if (event.key === "Enter") {
+        localCell.isEditing = false;
         processCell();
         onEnterPress(event);
       }
       if (event.key === "Escape") {
-        cell.isEditing = false;
-        cell.isSelected = false;
+        localCell.isEditing = false;
+        localCell.isSelected = false;
       }
       if (event.key === "Delete" || event.key === "Backspace") {
         event.stopPropagation();
       }
     }}
     onblur={() => {
+      localCell.isEditing = false;
       processCell();
-      cell.isEditing = false;
-      cell.isSelected = false;
+      localCell.isSelected = false;
     }}
   />
 {:else}
   <button
     class={[
       "w-full h-full border border-gray-300 box-border cursor-pointer flex-shrink-0",
-      cell.isSelected ? "bg-gray-200" : "bg-white",
+      localCell.isSelected ? "bg-gray-200" : "bg-white",
     ]}
-    onmousedown={onMouseDown}
-    onmouseup={onMouseUp}
-    use:parseRawValue
-    onclick={() => {
-      cell.isEditing = true;
+    onmousedown={(event) => {
+      onMouseDown(event);
+    }}
+    onmouseup={(event) => {
+      onMouseUp(event);
+    }}
+    ondblclick={() => {
+      localCell.isEditing = true;
     }}
   >
-    {cell.displayValue}
+    {localCell.displayValue}
   </button>
 {/if}
