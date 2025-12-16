@@ -48,7 +48,6 @@
     }
   });
 
-  // ✅ getCell内でgridを変更しない
   function getCell(x: number, y: number): CellType {
     const key = `${x}-${y}`;
     let cell = grid[key];
@@ -61,12 +60,10 @@
         isSelected: false,
         isEditing: false,
       };
-      // ✅ ここでは追加しない
     }
     return cell;
   }
 
-  // ✅ セルを確実にgridに追加する関数
   function ensureCell(x: number, y: number): CellType {
     const key = `${x}-${y}`;
     if (!grid[key]) {
@@ -96,7 +93,7 @@
     const coords = cellEl.getAttribute("data-cell-loc");
     if (!coords) return null;
     const [x, y] = coords.split("-").map(Number);
-    return ensureCell(x, y); // ✅ ensureCellを使用
+    return ensureCell(x, y);
   }
 
   function updateSelection(startCell: CellType, endCell: CellType) {
@@ -117,7 +114,7 @@
       for (let x = startX; x <= endX; x++) {
         const key = getCellKey(x, y);
         selectedCells.add(key);
-        const cell = ensureCell(x, y); // ✅ ensureCellを使用
+        const cell = ensureCell(x, y);
         cell.isSelected = true;
       }
     }
@@ -176,7 +173,7 @@
           cell.isEditing = false;
         }
         selectedCells.clear();
-        const nextCell = ensureCell(currentCell.x, nextY); // ✅ ensureCellを使用
+        const nextCell = ensureCell(currentCell.x, nextY);
         nextCell.isSelected = true;
         nextCell.isEditing = true;
         selectedCells.add(getCellKey(currentCell.x, nextY));

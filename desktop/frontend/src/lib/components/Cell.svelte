@@ -20,7 +20,6 @@
     onEnterPress,
   }: Props = $props();
 
-  // ✅ セルをローカルステートとして管理
   let localCell = $state({
     x: cell.x,
     y: cell.y,
@@ -30,7 +29,6 @@
     isEditing: cell.isEditing,
   });
 
-  // ✅ 親から変更があったら同期
   $effect(() => {
     localCell = {
       x: cell.x,
@@ -50,26 +48,20 @@
   };
 
   const processCell = () => {
-    console.log(`processCell called for ${localCell.x}-${localCell.y}`);
     const cellKey = `${localCell.x}-${localCell.y}`;
     if (localCell.rawValue[0] === "=") {
       try {
         const formula = localCell.rawValue.slice(1);
-        console.log(`Resolving formula: ${formula}`);
         const resolvedFormula = resolveAll(formula, grid, cellKey);
-        console.log(`Resolved: ${resolvedFormula}`);
         const result = evaluate(resolvedFormula);
-        console.log(`Result: ${result}`);
         localCell.displayValue = String(result);
       } catch (error) {
-        console.error(`Error in cell ${cellKey}:`, error);
         localCell.displayValue = "#ERROR";
       }
     } else {
       localCell.displayValue = localCell.rawValue;
     }
 
-    // ✅ gridに反映（参照は保持）
     grid[cellKey] = {
       x: localCell.x,
       y: localCell.y,
@@ -79,7 +71,6 @@
       isEditing: localCell.isEditing,
     };
 
-    console.log(`Calling updateCell for ${cellKey}`);
     updateCell(cellKey, grid);
   };
 
@@ -99,16 +90,6 @@
       return "";
     }
   }
-
-  // デバッグ用
-  $effect(() => {
-    console.log(`Cell ${localCell.x}-${localCell.y} state:`, {
-      isEditing: localCell.isEditing,
-      isSelected: localCell.isSelected,
-      rawValue: localCell.rawValue,
-      displayValue: localCell.displayValue,
-    });
-  });
 </script>
 
 {#if localCell.x === 0 || localCell.y === 0}
@@ -122,15 +103,12 @@
     bind:value={localCell.rawValue}
     use:focusInput
     onkeydown={(event: KeyboardEvent) => {
-      console.log(`Key pressed: ${event.key}`);
       if (event.key === "Enter") {
-        console.log(`Enter pressed in cell ${localCell.x}-${localCell.y}`);
         localCell.isEditing = false;
         processCell();
         onEnterPress(event);
       }
       if (event.key === "Escape") {
-        console.log(`Escape pressed in cell ${localCell.x}-${localCell.y}`);
         localCell.isEditing = false;
         localCell.isSelected = false;
       }
@@ -139,7 +117,6 @@
       }
     }}
     onblur={() => {
-      console.log(`Blur event in cell ${localCell.x}-${localCell.y}`);
       localCell.isEditing = false;
       processCell();
       localCell.isSelected = false;
@@ -152,15 +129,12 @@
       localCell.isSelected ? "bg-gray-200" : "bg-white",
     ]}
     onmousedown={(event) => {
-      console.log(`MouseDown on cell ${localCell.x}-${localCell.y}`);
       onMouseDown(event);
     }}
     onmouseup={(event) => {
-      console.log(`MouseUp on cell ${localCell.x}-${localCell.y}`);
       onMouseUp(event);
     }}
     ondblclick={() => {
-      console.log(`DoubleClick on cell ${localCell.x}-${localCell.y}`);
       localCell.isEditing = true;
     }}
   >

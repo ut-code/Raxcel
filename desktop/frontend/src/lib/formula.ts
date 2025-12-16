@@ -4,7 +4,6 @@ import * as math from "mathjs";
 type DependencyMap = Record<string, Set<string>>;
 const dependencyGraph: DependencyMap = {};
 
-// 現在評価中のセルを追跡（循環参照検出用）
 const evaluationStack = new Set<string>();
 
 function columnToNumber(column: string): number {
@@ -47,9 +46,6 @@ function getDependentCells(cellKey: string): Set<string> {
   return dependencyGraph[cellKey] || new Set();
 }
 
-/**
- * 循環参照を検出する
- */
 function detectCircularReference(
   startCell: string,
   visited = new Set<string>(),
@@ -103,7 +99,6 @@ function resolveRangeToArray(
     for (let row = minRow; row <= maxRow; row++) {
       const key = getCellKey(col, row);
 
-      // 循環参照チェック
       if (evaluationStack.has(key)) {
         throw new Error("#CIRCULAR");
       }
@@ -152,7 +147,6 @@ function resolveFunctionCalls(formula: string): string {
 
   let result = formula;
 
-  // 列分割処理
   COLUMN_SPLIT_FUNCTIONS.forEach((funcName) => {
     const pattern = new RegExp(
       `\\b${funcName}\\s*\\(\\s*(\\[\\[.+?\\]\\])\\s*\\)`,
@@ -160,14 +154,11 @@ function resolveFunctionCalls(formula: string): string {
     );
 
     result = result.replace(pattern, (match, array2d) => {
-      console.log(`Column split matched for ${funcName}:`, match);
       const flattened = array2d.slice(1, -1);
-      console.log(`Flattened:`, flattened);
       return `${funcName}(${flattened})`;
     });
   });
 
-  // 関数名を変換
   Object.entries(functionMap).forEach(([excelFunc, mathFunc]) => {
     const regex = new RegExp(`\\b${excelFunc}\\(`, "gi");
     result = result.replace(regex, `${mathFunc}(`);
@@ -187,7 +178,6 @@ function resolveCellReference(
     if (!coords) return match;
     const key = getCellKey(coords.x, coords.y);
 
-    // 循環参照チェック
     if (evaluationStack.has(key)) {
       throw new Error("#CIRCULAR");
     }
@@ -205,28 +195,21 @@ export function resolveAll(
   grid: Record<string, Cell>,
   currentCellKey: string,
 ): string {
-  console.log(`resolveAll for ${currentCellKey}:`, formula);
   clearDependencies(currentCellKey);
 
-  // 1. 範囲表記を配列に変換
   const rangeResolvedFormula = resolveRangeNotation(
     formula,
     grid,
     currentCellKey,
   );
-  console.log(`After range resolution:`, rangeResolvedFormula);
 
-  // 2. 単一セル参照を解決
   const cellRefResolvedFormula = resolveCellReference(
     rangeResolvedFormula,
     grid,
     currentCellKey,
   );
-  console.log(`After cell reference:`, cellRefResolvedFormula);
 
-  // 3. 関数名をmathjsの関数に変換
   const functionResolvedFormula = resolveFunctionCalls(cellRefResolvedFormula);
-  console.log(`After function calls:`, functionResolvedFormula);
 
   return functionResolvedFormula;
 }
@@ -251,35 +234,25 @@ export function getAffectedCells(cellKey: string): Set<string> {
 }
 
 export function updateCell(cellKey: string, grid: Record<string, Cell>): void {
-  console.log(`=== updateCell called for ${cellKey} ===`);
-
   const affectedCells = getAffectedCells(cellKey);
-  console.log(`Affected cells:`, Array.from(affectedCells));
 
   affectedCells.forEach((key) => {
     const cell = grid[key];
-    console.log(`Processing cell ${key}:`, cell);
 
     if (cell && cell.rawValue.startsWith("=")) {
       evaluationStack.add(key);
-      console.log(`Evaluation stack:`, Array.from(evaluationStack));
 
       const formula = cell.rawValue.slice(1);
-      console.log(`Formula:`, formula);
 
       try {
         const resolvedFormula = resolveAll(formula, grid, key);
-        console.log(`Resolved formula:`, resolvedFormula);
-
         const result = math.evaluate(resolvedFormula);
-        console.log(`Evaluation result:`, result);
 
         grid[key] = {
           ...cell,
           displayValue: String(result),
         };
       } catch (error) {
-        console.error(`Error in cell ${key}:`, error);
         const errorMessage = error instanceof Error ? error.message : "#ERROR";
         grid[key] = {
           ...cell,
