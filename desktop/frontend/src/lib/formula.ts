@@ -136,7 +136,7 @@ function resolveRangeNotation(
   return processed;
 }
 
-const COLUMN_SPLIT_FUNCTIONS = ["CORR", "COV", "PEARSON"];
+const COLUMN_SPLIT_FUNCTIONS = ["CORR"];
 
 function resolveFunctionCalls(formula: string): string {
   const functionMap: Record<string, string> = {
@@ -148,7 +148,6 @@ function resolveFunctionCalls(formula: string): string {
     STD: "std",
     VARIANCE: "variance",
     CORR: "corr",
-    COV: "cov",
   };
 
   let result = formula;
