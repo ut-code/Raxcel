@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { ChatWithAI } from "../wailsjs/go/main/App";
+  import { onMount } from "svelte";
+  import { ChatWithAI, GetMessages } from "../wailsjs/go/main/App";
   type Message = {
     author: "ai" | "user";
     message: string;
@@ -7,6 +8,20 @@
   let messages = $state<Message[]>([]);
   let isLoading = $state(false);
   let userMessage = $state("");
+
+  onMount(async () => {
+    // Load chat history when component mounts
+    const res = await GetMessages();
+    if (res.ok && res.messages) {
+      messages = res.messages.map((msg) => ({
+        author: msg.role === "user" ? "user" : "ai",
+        message: msg.content,
+      }));
+    } else if (res.error) {
+      console.error("Failed to load messages:", res.error);
+    }
+  });
+
   async function sendMessage() {
     const newUserMessage: Message = {
       author: "user",
