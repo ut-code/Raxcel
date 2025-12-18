@@ -32,7 +32,6 @@
     {chartComponent}
     bind:grid
     bind:isChatOpen
-    isLoggedIn={authState.isLoggedIn}
   />
 
   <Sheet bind:grid bind:selectedCells />

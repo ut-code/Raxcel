@@ -407,3 +407,21 @@ func (a *App) CheckUser() CheckResult {
 		UserId: serverResponse["userId"],
 	}
 }
+
+type SignOutResult struct {
+	Ok    bool   `json:"ok"`
+	Error string `json:"error,omitempty"`
+}
+
+func (a *App) SignOut() SignOutResult {
+	err := keyring.Delete("Raxcel", "raxcel-user")
+	if err != nil {
+		return SignOutResult{
+			Ok:    false,
+			Error: fmt.Sprintf("Failed to sign out: %v", err),
+		}
+	}
+	return SignOutResult{
+		Ok: true,
+	}
+}

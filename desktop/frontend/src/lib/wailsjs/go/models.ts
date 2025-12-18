@@ -117,6 +117,20 @@ export namespace main {
 	        this.userId = source["userId"];
 	    }
 	}
+	export class SignOutResult {
+	    ok: boolean;
+	    error?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new SignOutResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.ok = source["ok"];
+	        this.error = source["error"];
+	    }
+	}
 
 }
 
