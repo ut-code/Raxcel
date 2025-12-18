@@ -13,3 +13,5 @@ export function Greet(arg1:string):Promise<string>;
 export function Login(arg1:string,arg2:string):Promise<main.LoginResult>;
 
 export function Register(arg1:string,arg2:string):Promise<main.RegisterResult>;
+
+export function SignOut():Promise<main.SignOutResult>;

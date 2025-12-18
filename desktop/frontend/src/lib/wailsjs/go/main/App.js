@@ -25,3 +25,7 @@ export function Login(arg1, arg2) {
 export function Register(arg1, arg2) {
   return window['go']['main']['App']['Register'](arg1, arg2);
 }
+
+export function SignOut() {
+  return window['go']['main']['App']['SignOut']();
+}

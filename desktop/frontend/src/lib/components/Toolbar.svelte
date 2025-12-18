@@ -2,19 +2,19 @@
   import { goto } from "$app/navigation";
   import Chart from "$lib/components/Chart.svelte";
   import Xlsxloader from "$lib/components/Xlsxloader.svelte";
+  import { SignOut } from "$lib/wailsjs/go/main/App";
   import type { Cell } from "$lib/types";
+  import { authState } from "$lib/stores/auth.svelte";
 
   interface Props {
     chartComponent: Chart | null;
     grid: Record<string, Cell>;
     isChatOpen: boolean;
-    isLoggedIn: boolean;
   }
   let {
     chartComponent,
     grid = $bindable(),
     isChatOpen = $bindable(),
-    isLoggedIn,
   }: Props = $props();
 
   function handlerCreateChart() {
@@ -23,6 +23,15 @@
       if (!success) {
         alert("select valid numbers");
       }
+    }
+  }
+
+  async function handleSignOut() {
+    const result = await SignOut();
+    if (result.ok) {
+      authState.logout();
+    } else {
+      alert(`Sign out failed: ${result.error}`);
     }
   }
 </script>
@@ -54,7 +63,7 @@
       <button
         class="btn btn-sm btn-accent gap-2"
         onclick={() => {
-          if (isLoggedIn) {
+          if (authState.isLoggedIn) {
             isChatOpen = true;
           } else {
             alert("sign in to chat with AI");
@@ -68,8 +77,8 @@
     {/if}
     
     <!-- User Menu -->
-    {#if isLoggedIn}
-      <button class="btn btn-sm btn-outline" onclick={() => goto("/signout")}>
+    {#if authState.isLoggedIn}
+      <button class="btn btn-sm btn-outline" onclick={handleSignOut}>
         Sign Out 
       </button>
     {:else}
