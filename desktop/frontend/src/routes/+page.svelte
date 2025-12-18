@@ -38,7 +38,7 @@
   <Sheet bind:grid bind:selectedCells />
 
   {#if isChatOpen}
-    <Chat />
+    <Chat bind:isChatOpen/>
   {/if}
 
   <Chart {grid} {selectedCells} bind:this={chartComponent} />

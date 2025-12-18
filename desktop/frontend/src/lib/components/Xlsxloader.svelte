@@ -8,7 +8,7 @@
 
   let { grid = $bindable() }: Props = $props();
 
-  let currentFile = $state<File | null>(null);
+  let fileInput: HTMLInputElement;
   let error = $state<string | null>(null);
 
   async function processFile(file: File): Promise<void> {
@@ -60,28 +60,39 @@
     }
   }
 
-  function handleFileInput(event: Event) {
+  async function handleFileChange(event: Event) {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
-      currentFile = input.files[0];
+      await processFile(input.files[0]);
     }
+  }
+
+  function openFileDialog() {
+    fileInput.click();
   }
 </script>
 
-<form
-  onsubmit={async (e) => {
-    if (currentFile) await processFile(currentFile);
-  }}
->
-  <input
-    type="file"
-    class="file-input"
-    accept=".xlsx,.xls"
-    onchange={handleFileInput}
-  />
-  <button class="btn" type="submit">upload Excel file</button>
-</form>
+<!-- Hidden file input -->
+<input
+  bind:this={fileInput}
+  type="file"
+  class="hidden"
+  accept=".xlsx,.xls"
+  onchange={handleFileChange}
+/>
+
+<!-- Styled button -->
+<button onclick={openFileDialog} class="btn btn-sm btn-ghost gap-2">
+  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+  </svg>
+  Open File
+</button>
 
 {#if error}
-  <p class="text-red-500">{error}</p>
+  <div class="toast toast-top toast-end">
+    <div class="alert alert-error">
+      <span>{error}</span>
+    </div>
+  </div>
 {/if}
