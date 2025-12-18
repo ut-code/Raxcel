@@ -15,6 +15,7 @@ func SetupRouter() *echo.Echo {
 	messages := e.Group("/messages")
 	messages.Use(middleware.AuthMiddleware)
 	messages.POST("", routes.ChatWithAI)
+	messages.GET("", routes.GetMessages)
 	e.GET("/user", routes.CheckUser)
 	e.POST("/register", routes.Register)
 	e.GET("/verify-email", routes.VerifyEmail)

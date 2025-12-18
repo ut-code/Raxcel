@@ -10,6 +10,10 @@ export function CheckUser() {
   return window['go']['main']['App']['CheckUser']();
 }
 
+export function GetMessages() {
+  return window['go']['main']['App']['GetMessages']();
+}
+
 export function Greet(arg1) {
   return window['go']['main']['App']['Greet'](arg1);
 }
