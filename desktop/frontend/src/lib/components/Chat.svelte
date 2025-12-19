@@ -1,10 +1,14 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { ChatWithAI, GetMessages } from "../wailsjs/go/main/App";
+  import type { Cell } from "$lib/types";
+  import { gridToMarkdownTable } from "$lib/sheet";
+  
   interface Props {
     isChatOpen: boolean;
+    grid: Record<string, Cell>
   }
-  let { isChatOpen = $bindable() }: Props = $props()
+  let { isChatOpen = $bindable(), grid }: Props = $props()
   type Message = {
     author: "ai" | "user";
     message: string;
@@ -12,6 +16,7 @@
   let messages = $state<Message[]>([]);
   let isLoading = $state(false);
   let userMessage = $state("");
+  let includeSheet = $state(true);
 
   onMount(async () => {
     // Load chat history when component mounts
@@ -33,7 +38,11 @@
     };
     messages.push(newUserMessage);
     isLoading = true;
-    const res = await ChatWithAI(userMessage);
+    
+    // シート内容を含めるかどうかで分岐
+    const spreadsheetContext = includeSheet ? gridToMarkdownTable(grid) : "";
+    
+    const res = await ChatWithAI(userMessage, spreadsheetContext);
     userMessage = "";
     if (!res.ok) {
       alert(`Error: ${res.message}`);
@@ -93,6 +102,23 @@
 
   <!-- Input Area -->
   <div class="p-4 border-t border-base-300">
+    <!-- Sheet Include Status -->
+    <button 
+      class="w-full mb-2 px-3 py-1.5 text-xs rounded-md transition-colors flex items-center gap-2 hover:bg-base-200"
+      class:bg-primary={includeSheet}
+      class:bg-base-200={!includeSheet}
+      class:text-primary-content={includeSheet}
+      class:text-base-content={!includeSheet}
+      onclick={() => includeSheet = !includeSheet}
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+      <span class="font-medium">
+        {includeSheet ? "Sheet included" : "Sheet not included"}
+      </span>
+    </button>
+    
     <div class="flex gap-2">
       <input 
         class="input input-bordered flex-1" 
