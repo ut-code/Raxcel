@@ -1,10 +1,14 @@
 import type { Cell } from "./types";
 import * as math from "mathjs";
 
-type DependencyMap = Record<string, Set<string>>;
+export type DependencyMap = Record<string, Set<string>>;
 const dependencyGraph: DependencyMap = {};
-
 const evaluationStack = new Set<string>();
+
+export function resetFormulaState(): void {
+  Object.keys(dependencyGraph).forEach(key => delete dependencyGraph[key]);
+  evaluationStack.clear();
+}
 
 function columnToNumber(column: string): number {
   let result = 0;
@@ -36,10 +40,11 @@ function addDependency(dependentCell: string, dependsOnCell: string) {
 }
 
 function clearDependencies(cellKey: string) {
+  // Remove cellKey from all dependency lists (cellKey no longer references those cells)
   Object.values(dependencyGraph).forEach((dependencies) => {
     dependencies.delete(cellKey);
   });
-  delete dependencyGraph[cellKey];
+  // Note: We don't delete dependencyGraph[cellKey] because other cells may still reference this cell
 }
 
 function getDependentCells(cellKey: string): Set<string> {
@@ -183,6 +188,12 @@ function resolveCellReference(
     }
 
     addDependency(currentCellKey, key);
+    
+    // Check for circular reference: if the referenced cell depends on currentCellKey
+    const cycle = detectCircularReference(key);
+    if (cycle && cycle.includes(currentCellKey)) {
+      throw new Error("#CIRCULAR");
+    }
 
     const cell = grid[key];
     return cell ? cell.displayValue : "0";
@@ -235,8 +246,14 @@ export function getAffectedCells(cellKey: string): Set<string> {
 
 export function updateCell(cellKey: string, grid: Record<string, Cell>): void {
   const affectedCells = getAffectedCells(cellKey);
+  
+  // Include the cell itself if it has a formula
+  const cellsToUpdate = new Set(affectedCells);
+  if (grid[cellKey]?.rawValue.startsWith("=")) {
+    cellsToUpdate.add(cellKey);
+  }
 
-  affectedCells.forEach((key) => {
+  cellsToUpdate.forEach((key) => {
     const cell = grid[key];
 
     if (cell && cell.rawValue.startsWith("=")) {
