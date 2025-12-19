@@ -2,6 +2,7 @@ package routes
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -65,6 +66,38 @@ func ChatWithAI(c echo.Context) error {
 	}
 	log.Println("User message saved successfully")
 
+	// Get recent messages (最新7件取得して、最後の1件=現在のメッセージを除外)
+	log.Println("Fetching recent messages for context...")
+	var recentMessages []db.Message
+	err = database.Where("user_id = ?", userId).Order("created_at DESC").Limit(7).Find(&recentMessages).Error
+	if err != nil {
+		log.Printf("Failed to get recent messages: %v", err)
+	}
+	log.Printf("Retrieved %d messages", len(recentMessages))
+
+	// 現在のメッセージを除外して、時系列順に並び替え
+	var contextMessages []db.Message
+	for i := len(recentMessages) - 1; i >= 1; i-- { // i >= 1 で最新(現在のメッセージ)を除外
+		contextMessages = append(contextMessages, recentMessages[i])
+	}
+	log.Printf("Using %d messages as context", len(contextMessages))
+
+	// Build prompt with conversation history
+	prompt := ""
+	if len(contextMessages) > 0 {
+		prompt = "Previous conversation:\n"
+		for _, m := range contextMessages {
+			if m.Role == "user" {
+				prompt += fmt.Sprintf("User: %s\n", m.Content)
+			} else {
+				prompt += fmt.Sprintf("Assistant: %s\n", m.Content)
+			}
+		}
+		prompt += "\nCurrent message:\n"
+	}
+	prompt += fmt.Sprintf("User: %s", message.Message)
+	log.Printf("Prompt length: %d characters", len(prompt))
+
 	// Setup gemini client
 	log.Println("Creating Gemini client...")
 	ctx := context.Background()
@@ -77,7 +110,7 @@ func ChatWithAI(c echo.Context) error {
 
 	// Generate AI response
 	log.Println("Generating AI response...")
-	result, err := client.Models.GenerateContent(ctx, "gemini-2.5-flash", genai.Text(message.Message), nil)
+	result, err := client.Models.GenerateContent(ctx, "gemini-2.5-flash", genai.Text(prompt), nil)
 	if err != nil {
 		log.Printf("Gemini API error: %v", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate content"})
