@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { ChatWithAI, GetMessages } from "../wailsjs/go/main/App";
+  import Dialog from "$lib/components/Dialog.svelte";
   import type { Cell } from "$lib/types";
   import { gridToMarkdownTable } from "$lib/sheet";
   
@@ -17,6 +18,19 @@
   let isLoading = $state(false);
   let userMessage = $state("");
   let includeSheet = $state(true);
+
+  // Dialog state
+  let dialogOpen = $state(false);
+  let dialogMessage = $state("");
+  let dialogTitle = $state("");
+  let dialogType = $state<"info" | "error" | "warning" | "success">("info");
+
+  function showDialog(message: string, title: string = "Notification", type: "info" | "error" | "warning" | "success" = "info") {
+    dialogMessage = message;
+    dialogTitle = title;
+    dialogType = type;
+    dialogOpen = true;
+  }
 
   onMount(async () => {
     // Load chat history when component mounts
@@ -45,7 +59,7 @@
     const res = await ChatWithAI(userMessage, spreadsheetContext);
     userMessage = "";
     if (!res.ok) {
-      alert(`Error: ${res.message}`);
+      showDialog(`Error: ${res.message}`, "AI Chat Error", "error");
     }
     const newAiMessage: Message = {
       author: "ai",
@@ -144,3 +158,10 @@
     </div>
   </div>
 </div>
+
+<Dialog 
+  bind:isOpen={dialogOpen} 
+  message={dialogMessage}
+  title={dialogTitle}
+  type={dialogType}
+/>

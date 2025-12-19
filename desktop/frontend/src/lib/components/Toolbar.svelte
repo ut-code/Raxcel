@@ -2,6 +2,7 @@
   import { goto } from "$app/navigation";
   import Chart from "$lib/components/Chart.svelte";
   import Xlsxloader from "$lib/components/Xlsxloader.svelte";
+  import Dialog from "$lib/components/Dialog.svelte";
   import { SignOut } from "$lib/wailsjs/go/main/App";
   import type { Cell } from "$lib/types";
   import { authState } from "$lib/stores/auth.svelte";
@@ -17,11 +18,24 @@
     isChatOpen = $bindable(),
   }: Props = $props();
 
+  // Dialog state
+  let dialogOpen = $state(false);
+  let dialogMessage = $state("");
+  let dialogTitle = $state("");
+  let dialogType = $state<"info" | "error" | "warning" | "success">("info");
+
+  function showDialog(message: string, title: string = "Notification", type: "info" | "error" | "warning" | "success" = "info") {
+    dialogMessage = message;
+    dialogTitle = title;
+    dialogType = type;
+    dialogOpen = true;
+  }
+
   function handlerCreateChart() {
     if (chartComponent) {
       const success = chartComponent.drawChart();
       if (!success) {
-        alert("select valid numbers");
+        showDialog("Please select valid numbers", "Chart Creation Failed", "warning");
       }
     }
   }
@@ -31,7 +45,7 @@
     if (result.ok) {
       authState.logout();
     } else {
-      alert(`Sign out failed: ${result.error}`);
+      showDialog(`Sign out failed: ${result.error}`, "Sign Out Error", "error");
     }
   }
 </script>
@@ -87,3 +101,10 @@
     {/if}
   </div>
 </div>
+
+<Dialog 
+  bind:isOpen={dialogOpen} 
+  message={dialogMessage}
+  title={dialogTitle}
+  type={dialogType}
+/>
