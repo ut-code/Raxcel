@@ -47,7 +47,8 @@ func (a *App) Greet(name string) string {
 }
 
 type ChatRequest struct {
-	Message string `json:"message"`
+	Message            string `json:"message"`
+	SpreadsheetContext string `json:"spreadsheetContext,omitempty"`
 }
 
 type ChatResult struct {
@@ -155,11 +156,13 @@ func (a *App) GetMessages() GetMessagesResult {
 	}
 }
 
-func (a *App) ChatWithAI(message string) ChatResult {
+func (a *App) ChatWithAI(message string, spreadsheetContext string) ChatResult {
 	fmt.Println("ChatWithAI called with message:", message)
+	fmt.Printf("Spreadsheet context length: %d characters\n", len(spreadsheetContext))
 
 	postData := ChatRequest{
-		Message: message,
+		Message:            message,
+		SpreadsheetContext: spreadsheetContext,
 	}
 	jsonData, err := json.Marshal(postData)
 	if err != nil {

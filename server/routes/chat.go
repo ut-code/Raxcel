@@ -14,7 +14,8 @@ import (
 )
 
 type userMessage struct {
-	Message string `json:"message"`
+	Message            string `json:"message"`
+	SpreadsheetContext string `json:"spreadsheetContext,omitempty"`
 }
 
 func Greet(c echo.Context) error {
@@ -84,8 +85,16 @@ func ChatWithAI(c echo.Context) error {
 
 	// Build prompt with conversation history
 	prompt := ""
+
+	// Add spreadsheet context if provided
+	if message.SpreadsheetContext != "" {
+		prompt += "Current Spreadsheet Data:\n"
+		prompt += message.SpreadsheetContext + "\n\n"
+		log.Printf("Added spreadsheet context (%d characters)", len(message.SpreadsheetContext))
+	}
+
 	if len(contextMessages) > 0 {
-		prompt = "Previous conversation:\n"
+		prompt += "Previous conversation:\n"
 		for _, m := range contextMessages {
 			if m.Role == "user" {
 				prompt += fmt.Sprintf("User: %s\n", m.Content)
