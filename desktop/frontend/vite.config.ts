@@ -7,9 +7,10 @@ const host: string = process.env.TAURI_DEV_HOST;
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
-  resolve: process.env.VITEST ? {
+  resolve: process.env.VITEST 
+    ? {
     conditions: ["browser"]
-  }
+      }
     : undefined,
   plugins: [sveltekit(), tailwindcss()],
 
