@@ -19,12 +19,14 @@
     onMouseUp,
     onEnterPress,
   }: Props = $props();
+  let startedWithTyping = $state(false)
 
   const focusInput: Action = (node) => {
     node.focus();
-    if (node instanceof HTMLInputElement) {
+    if (node instanceof HTMLInputElement && !startedWithTyping) {
       node.select();
     }
+    startedWithTyping = false
   };
 
   const processCell = () => {
@@ -42,14 +44,7 @@
       cell.displayValue = cell.rawValue;
     }
 
-    grid[cellKey] = {
-      x: cell.x,
-      y: cell.y,
-      rawValue: cell.rawValue,
-      displayValue: cell.displayValue,
-      isSelected: cell.isSelected,
-      isEditing: cell.isEditing,
-    };
+    grid[cellKey] = cell;
 
     updateCell(cellKey, grid);
   };
@@ -84,7 +79,6 @@
     use:focusInput
     onkeydown={(event: KeyboardEvent) => {
       if (event.key === "Enter") {
-        cell.isEditing = false;
         processCell();
         onEnterPress(event);
       }
@@ -97,8 +91,8 @@
       }
     }}
     onblur={() => {
-      cell.isEditing = false;
       processCell();
+      cell.isEditing = false;
       cell.isSelected = false;
     }}
   />
@@ -108,14 +102,22 @@
       "w-full h-full border border-gray-300 box-border cursor-pointer flex-shrink-0",
       cell.isSelected ? "bg-gray-200" : "bg-white",
     ]}
-    onmousedown={(event) => {
-      onMouseDown(event);
-    }}
-    onmouseup={(event) => {
-      onMouseUp(event);
-    }}
+    onmousedown={
+      onMouseDown
+    }
+    onmouseup={
+      onMouseUp
+    }
     ondblclick={() => {
       cell.isEditing = true;
+    }}
+ onkeydown={(event: KeyboardEvent) => {
+      if (event.key.length === 1 && !event.ctrlKey && !event.metaKey) {
+        cell.isEditing = true
+        cell.rawValue = event.key
+        startedWithTyping = true
+        event.preventDefault()
+      }
     }}
   >
     {cell.displayValue}
