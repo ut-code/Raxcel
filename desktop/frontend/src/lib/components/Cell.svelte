@@ -19,57 +19,32 @@
     onMouseUp,
     onEnterPress,
   }: Props = $props();
-
-  let localCell = $state({
-    x: cell.x,
-    y: cell.y,
-    rawValue: cell.rawValue,
-    displayValue: cell.displayValue,
-    isSelected: cell.isSelected,
-    isEditing: cell.isEditing,
-  });
-
-  $effect(() => {
-    localCell = {
-      x: cell.x,
-      y: cell.y,
-      rawValue: cell.rawValue,
-      displayValue: cell.displayValue,
-      isSelected: cell.isSelected,
-      isEditing: cell.isEditing,
-    };
-  });
+  let startedWithTyping = $state(false)
 
   const focusInput: Action = (node) => {
     node.focus();
-    if (node instanceof HTMLInputElement) {
+    if (node instanceof HTMLInputElement && !startedWithTyping) {
       node.select();
     }
+    startedWithTyping = false
   };
 
   const processCell = () => {
-    const cellKey = `${localCell.x}-${localCell.y}`;
-    if (localCell.rawValue[0] === "=") {
+    const cellKey = `${cell.x}-${cell.y}`;
+    if (cell.rawValue[0] === "=") {
       try {
-        const formula = localCell.rawValue.slice(1);
+        const formula = cell.rawValue.slice(1);
         const resolvedFormula = resolveAll(formula, grid, cellKey);
         const result = evaluate(resolvedFormula);
-        localCell.displayValue = String(result);
+        cell.displayValue = String(result);
       } catch (error) {
-        localCell.displayValue = "#ERROR";
+        cell.displayValue = "#ERROR";
       }
     } else {
-      localCell.displayValue = localCell.rawValue;
+      cell.displayValue = cell.rawValue;
     }
 
-    grid[cellKey] = {
-      x: localCell.x,
-      y: localCell.y,
-      rawValue: localCell.rawValue,
-      displayValue: localCell.displayValue,
-      isSelected: localCell.isSelected,
-      isEditing: localCell.isEditing,
-    };
+    grid[cellKey] = cell;
 
     updateCell(cellKey, grid);
   };
@@ -92,52 +67,59 @@
   }
 </script>
 
-{#if localCell.x === 0 || localCell.y === 0}
+{#if cell.x === 0 || cell.y === 0}
   <div class="w-full h-full text-center border border-gray-300 box-border">
-    {getCellHeader(localCell.x, localCell.y)}
+    {getCellHeader(cell.x, cell.y)}
   </div>
-{:else if localCell.isEditing}
+{:else if cell.isEditing}
   <input
     type="text"
     class="w-full h-full border border-gray-300 box-border cursor-pointer bg-white"
-    bind:value={localCell.rawValue}
+    bind:value={cell.rawValue}
     use:focusInput
     onkeydown={(event: KeyboardEvent) => {
       if (event.key === "Enter") {
-        localCell.isEditing = false;
         processCell();
         onEnterPress(event);
       }
       if (event.key === "Escape") {
-        localCell.isEditing = false;
-        localCell.isSelected = false;
+        cell.isEditing = false;
+        cell.isSelected = false;
       }
       if (event.key === "Delete" || event.key === "Backspace") {
         event.stopPropagation();
       }
     }}
     onblur={() => {
-      localCell.isEditing = false;
       processCell();
-      localCell.isSelected = false;
+      cell.isEditing = false;
+      cell.isSelected = false;
     }}
   />
 {:else}
   <button
     class={[
       "w-full h-full border border-gray-300 box-border cursor-pointer flex-shrink-0",
-      localCell.isSelected ? "bg-gray-200" : "bg-white",
+      cell.isSelected ? "bg-gray-200" : "bg-white",
     ]}
-    onmousedown={(event) => {
-      onMouseDown(event);
-    }}
-    onmouseup={(event) => {
-      onMouseUp(event);
-    }}
+    onmousedown={
+      onMouseDown
+    }
+    onmouseup={
+      onMouseUp
+    }
     ondblclick={() => {
-      localCell.isEditing = true;
+      cell.isEditing = true;
+    }}
+ onkeydown={(event: KeyboardEvent) => {
+      if (event.key.length === 1 && !event.ctrlKey && !event.metaKey) {
+        cell.isEditing = true
+        cell.rawValue = event.key
+        startedWithTyping = true
+        event.preventDefault()
+      }
     }}
   >
-    {localCell.displayValue}
+    {cell.displayValue}
   </button>
 {/if}

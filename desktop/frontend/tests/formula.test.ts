@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeEach } from "bun:test";
+import { describe, test, expect, beforeEach } from "vitest";
 import { resolveAll, getAffectedCells, updateCell, resetFormulaState } from "../src/lib/formula";
 import type { Cell } from "../src/lib/types";
 
