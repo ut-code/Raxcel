@@ -11,7 +11,7 @@
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "tauri": "tauri",
     "format": "bunx prettier . --write",
-    "test": "bunx vitest"
+    "test": "vitest"
   },
   "license": "MIT",
   "dependencies": {
