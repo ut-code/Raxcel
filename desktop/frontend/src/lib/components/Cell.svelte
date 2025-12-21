@@ -13,7 +13,7 @@
   }
 
   let {
-    cell = $bindable(),
+    cell,
     grid = $bindable(),
     onMouseDown,
     onMouseUp,
