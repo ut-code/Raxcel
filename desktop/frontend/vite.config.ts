@@ -1,17 +1,24 @@
 import { defineConfig } from "vitest/config";
 import { sveltekit } from "@sveltejs/kit/vite";
+import { svelteTesting } from "@testing-library/svelte/vite"
 import tailwindcss from "@tailwindcss/vite";
+import { svelte } from "@sveltejs/vite-plugin-svelte";
 
 // @ts-expect-error process is a nodejs global
 const host: string = process.env.TAURI_DEV_HOST;
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
-  resolve: process.env.VITEST ? {
+  resolve: process.env.VITEST 
+    ? {
     conditions: ["browser"]
-  }
+      }
     : undefined,
-  plugins: [sveltekit(), tailwindcss()],
+  test: {
+    environment: "jsdom",
+    setupFiles: ["./vitest-setup.ts"]
+  },
+  plugins: [sveltekit(), tailwindcss(), svelteTesting()],
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
