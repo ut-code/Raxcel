@@ -69,10 +69,10 @@
 </script>
 
 <dialog class="modal" bind:this={dialogRef}>
-  <div class="relative h-96 w-128">
-    <form method="dialog">
-      <button class="btn">Close</button>
-    </form>
+  <div class="modal-box">
     <canvas bind:this={canvasRef} class="bg-white"></canvas>
   </div>
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
 </dialog>
