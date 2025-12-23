@@ -1,4 +1,4 @@
-import { type ChartConfiguration } from "chart.js";
+import { type ChartConfiguration, type Plugin } from "chart.js";
 
 type Vertex = {
   x: number;
@@ -42,9 +42,21 @@ export function setupPlot(values: number[]): ChartConfiguration {
     ],
   };
 
+  const plugin: Plugin = {
+  id: 'customCanvasBackgroundColor',
+  beforeDraw: (chart, args, options) => {
+    const {ctx} = chart;
+    ctx.save();
+    ctx.globalCompositeOperation = 'destination-over';
+    ctx.fillStyle = options.color || '#FFFFFF';
+    ctx.fillRect(0, 0, chart.width, chart.height);
+    ctx.restore();
+  }
+};
   const config: ChartConfiguration = {
     type: "scatter",
     data: data,
+    plugins: [plugin],
     options: {
       scales: {
         x: {
