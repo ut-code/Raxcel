@@ -10,15 +10,18 @@
   let error = $state<string | null>(null);
   let fileName = $state("spreadsheet");
   let dialogElement: HTMLDialogElement;
-  
+
   function focusOnMount(node: HTMLElement) {
     setTimeout(() => node.focus(), 0);
   }
-  
-  function exportToXlsx(grid: Record<string, CellType>, fileName: string): void {
+
+  function exportToXlsx(
+    grid: Record<string, CellType>,
+    fileName: string,
+  ): void {
     try {
       const workbook = XLSX.utils.book_new();
-      
+
       let maxRow = 0;
       let maxCol = 0;
       for (const key in grid) {
@@ -41,10 +44,12 @@
 
       const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
       XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
-      
-      const fullFileName = fileName.endsWith('.xlsx') ? fileName : `${fileName}.xlsx`;
+
+      const fullFileName = fileName.endsWith(".xlsx")
+        ? fileName
+        : `${fileName}.xlsx`;
       XLSX.writeFile(workbook, fullFileName);
-      
+
       dialogElement?.close();
       fileName = "spreadsheet";
       error = null;
@@ -59,29 +64,29 @@
       exportToXlsx(grid, fileName.trim());
     }
   }
-  
+
   function closeModal() {
     dialogElement?.close();
     fileName = "spreadsheet";
   }
 </script>
 
-<button 
-  onclick={() => dialogElement?.showModal()} 
+<button
+  onclick={() => dialogElement?.showModal()}
   class="btn btn-sm btn-ghost gap-2"
 >
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    class="h-4 w-4" 
-    fill="none" 
-    viewBox="0 0 24 24" 
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    class="h-4 w-4"
+    fill="none"
+    viewBox="0 0 24 24"
     stroke="currentColor"
   >
-    <path 
-      stroke-linecap="round" 
-      stroke-linejoin="round" 
-      stroke-width="2" 
-      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" 
+    <path
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
     />
   </svg>
   Export to Excel
@@ -91,11 +96,11 @@
 <dialog bind:this={dialogElement} class="modal">
   <div class="modal-box">
     <h3 class="font-bold text-lg">Enter filename</h3>
-    
+
     <form onsubmit={handleSubmit} class="py-4">
       <div class="form-control">
         <label class="label" for="filename-input">
-          <span class="label-text">filename</span>
+          <span class="label-text">Filename</span>
         </label>
         <div class="input-group">
           <input
@@ -111,26 +116,22 @@
       </div>
 
       <div class="modal-action">
-        <button 
-          type="button" 
-          class="btn btn-ghost"
-          onclick={closeModal}
-        >
-          cancel
+        <button type="button" class="btn btn-ghost" onclick={closeModal}>
+          Cancel
         </button>
-        <button 
-          type="submit" 
+        <button
+          type="submit"
           class="btn btn-primary"
           disabled={!fileName.trim()}
         >
-          export
+          Export
         </button>
       </div>
     </form>
   </div>
-  
+
   <form method="dialog" class="modal-backdrop">
-    <button type="submit" aria-label="close modal">close</button>
+    <button type="submit" aria-label="close modal">Close</button>
   </form>
 </dialog>
 

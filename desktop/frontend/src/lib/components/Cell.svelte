@@ -19,14 +19,14 @@
     onMouseUp,
     onEnterPress,
   }: Props = $props();
-  let startedWithTyping = $state(false)
+  let startedWithTyping = $state(false);
 
   const focusInput: Action = (node) => {
     node.focus();
     if (node instanceof HTMLInputElement && !startedWithTyping) {
       node.select();
     }
-    startedWithTyping = false
+    startedWithTyping = false;
   };
 
   const processCell = () => {
@@ -102,21 +102,17 @@
       "w-full h-full border border-gray-300 box-border cursor-pointer flex-shrink-0",
       cell.isSelected ? "bg-gray-200" : "bg-white",
     ]}
-    onmousedown={
-      onMouseDown
-    }
-    onmouseup={
-      onMouseUp
-    }
+    onmousedown={onMouseDown}
+    onmouseup={onMouseUp}
     ondblclick={() => {
       cell.isEditing = true;
     }}
- onkeydown={(event: KeyboardEvent) => {
+    onkeydown={(event: KeyboardEvent) => {
       if (event.key.length === 1 && !event.ctrlKey && !event.metaKey) {
-        cell.isEditing = true
-        cell.rawValue = event.key
-        startedWithTyping = true
-        event.preventDefault()
+        cell.isEditing = true;
+        cell.rawValue = event.key;
+        startedWithTyping = true;
+        event.preventDefault();
       }
     }}
   >

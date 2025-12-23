@@ -28,16 +28,12 @@
 </script>
 
 <div class="h-screen flex flex-col">
-  <Toolbar
-    {chartComponent}
-    bind:grid
-    bind:isChatOpen
-  />
+  <Toolbar {chartComponent} bind:grid bind:isChatOpen />
 
   <Sheet bind:grid bind:selectedCells />
 
   {#if isChatOpen}
-    <Chat bind:isChatOpen {grid}/>
+    <Chat bind:isChatOpen {grid} />
   {/if}
 
   <Chart {grid} {selectedCells} bind:this={chartComponent} />

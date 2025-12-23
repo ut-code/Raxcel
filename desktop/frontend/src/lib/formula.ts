@@ -6,7 +6,7 @@ const dependencyGraph: DependencyMap = {};
 const evaluationStack = new Set<string>();
 
 export function resetFormulaState(): void {
-  Object.keys(dependencyGraph).forEach(key => delete dependencyGraph[key]);
+  Object.keys(dependencyGraph).forEach((key) => delete dependencyGraph[key]);
   evaluationStack.clear();
 }
 
@@ -188,7 +188,7 @@ function resolveCellReference(
     }
 
     addDependency(currentCellKey, key);
-    
+
     // Check for circular reference: if the referenced cell depends on currentCellKey
     const cycle = detectCircularReference(key);
     if (cycle && cycle.includes(currentCellKey)) {
@@ -246,7 +246,7 @@ export function getAffectedCells(cellKey: string): Set<string> {
 
 export function updateCell(cellKey: string, grid: Record<string, Cell>): void {
   const affectedCells = getAffectedCells(cellKey);
-  
+
   // Include the cell itself if it has a formula
   const cellsToUpdate = new Set(affectedCells);
   if (grid[cellKey]?.rawValue.startsWith("=")) {
