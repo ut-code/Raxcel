@@ -2,6 +2,7 @@
   import { goto } from "$app/navigation";
   import Chart from "$lib/components/Chart.svelte";
   import Xlsxloader from "$lib/components/Xlsxloader.svelte";
+  import XlsxExporter from "./XlsxExporter.svelte";
   import Dialog from "$lib/components/Dialog.svelte";
   import { SignOut } from "$lib/wailsjs/go/main/App";
   import type { Cell } from "$lib/types";
@@ -58,6 +59,7 @@
     <!-- File Operations -->
     <div class="flex gap-1">
       <Xlsxloader bind:grid />
+      <XlsxExporter bind:grid />
     </div>
     
     <!-- Divider -->
