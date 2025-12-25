@@ -34,7 +34,7 @@ type GetMessagesResult struct {
 	Error    string        `json:"error,omitempty"`
 }
 
-func (a *App) GetMessages() GetMessagesResult {
+func (a *App) LoadChatHistory() GetMessagesResult {
 	fmt.Println("GetMessages called")
 
 	apiUrl := getAPIURL()

@@ -30,7 +30,7 @@ func SetupRouter() *echo.Echo {
 	userGroup := router.Group("/users")
 	{
 		userGroup.Use(middleware.AuthMiddleware)
-		userGroup.GET("/me", routes.GetCurrentUserId)
+		userGroup.GET("/me", routes.GetCurrentUser)
 	}
 
 	return router

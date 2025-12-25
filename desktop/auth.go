@@ -21,7 +21,7 @@ type RegisterResult struct {
 	UserId  string `json:"userId,omitempty"`
 }
 
-func (a *App) Register(email, password string) RegisterResult {
+func (a *App) Signup(email, password string) RegisterResult {
 	postData := RegisterRequest{
 		Email:    email,
 		Password: password,
@@ -35,7 +35,7 @@ func (a *App) Register(email, password string) RegisterResult {
 	}
 	apiUrl := getAPIURL()
 
-	resp, err := http.Post(fmt.Sprintf("%s/register", apiUrl), "application/json", bytes.NewReader(jsonData))
+	resp, err := http.Post(fmt.Sprintf("%s/signup", apiUrl), "application/json", bytes.NewReader(jsonData))
 	if err != nil {
 		return RegisterResult{
 			Ok:      false,
@@ -82,7 +82,7 @@ type LoginResult struct {
 	Token   string `json:"token,omitempty"`
 }
 
-func (a *App) Login(email, password string) LoginResult {
+func (a *App) Signin(email, password string) LoginResult {
 	postData := LoginRequest{
 		Email:    email,
 		Password: password,
@@ -96,7 +96,7 @@ func (a *App) Login(email, password string) LoginResult {
 	}
 	apiUrl := getAPIURL()
 
-	resp, err := http.Post(fmt.Sprintf("%s/login", apiUrl), "application/json", bytes.NewReader(jsonData))
+	resp, err := http.Post(fmt.Sprintf("%s/signin", apiUrl), "application/json", bytes.NewReader(jsonData))
 	if err != nil {
 		return LoginResult{
 			Ok:      false,
@@ -148,10 +148,10 @@ type CheckResult struct {
 	Error  string `json:"error,omitempty"`
 }
 
-func (a *App) CheckUser() CheckResult {
+func (a *App) GetCurrentUser() CheckResult {
 	apiUrl := getAPIURL()
 	token, _ := keyring.Get("Raxcel", "raxcel-user")
-	req, _ := http.NewRequest("GET", fmt.Sprintf("%s/user", apiUrl), nil)
+	req, _ := http.NewRequest("GET", fmt.Sprintf("%s/users/me", apiUrl), nil)
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 	client := &http.Client{}
 	resp, err := client.Do(req)

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Login } from "$lib/wailsjs/go/main/App";
+  import { Signin } from "$lib/wailsjs/go/main/App";
   import { authState } from "$lib/stores/auth.svelte";
 
   let email = $state("");
@@ -16,7 +16,7 @@
     isLoading = true;
     error = "";
 
-    const result = await Login(email, password);
+    const result = await Signin(email, password);
 
     isLoading = false;
 

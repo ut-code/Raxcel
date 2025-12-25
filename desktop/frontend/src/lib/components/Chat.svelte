@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { ChatWithAI, GetMessages } from "../wailsjs/go/main/App";
+  import { ChatWithAI, LoadChatHistory } from "../wailsjs/go/main/App";
   import Dialog from "$lib/components/Dialog.svelte";
   import type { Cell } from "$lib/types";
   import { gridToMarkdownTable } from "$lib/sheet";
@@ -38,7 +38,7 @@
 
   onMount(async () => {
     // Load chat history when component mounts
-    const res = await GetMessages();
+    const res = await LoadChatHistory();
     if (res.ok && res.messages) {
       messages = res.messages.map((msg) => ({
         author: msg.role === "user" ? "user" : "ai",

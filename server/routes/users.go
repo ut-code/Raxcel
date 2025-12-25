@@ -6,7 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func GetCurrentUserId(c echo.Context) error {
+func GetCurrentUser(c echo.Context) error {
 	userId, ok := c.Get("userId").(string)
 	if !ok {
 		return c.JSON(http.StatusUnauthorized, map[string]string{
