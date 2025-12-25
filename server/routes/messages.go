@@ -21,6 +21,7 @@ type userMessage struct {
 func Greet(c echo.Context) error {
 	return c.String(http.StatusOK, "Hello from Echo!")
 }
+
 func ChatWithAI(c echo.Context) error {
 	log.Println("ChatWithAI called")
 
@@ -155,7 +156,7 @@ func ChatWithAI(c echo.Context) error {
 	})
 }
 
-func GetMessages(c echo.Context) error {
+func LoadChatHistory(c echo.Context) error {
 	log.Println("GetMessages called")
 
 	// Get userId from context (set by AuthMiddleware)

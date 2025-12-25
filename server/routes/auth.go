@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -29,7 +28,7 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
-func Register(c echo.Context) error {
+func Signup(c echo.Context) error {
 	req := new(RegisterRequest)
 	if err := c.Bind(req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
@@ -122,7 +121,7 @@ func VerifyEmail(c echo.Context) error {
 	return c.String(http.StatusOK, "email verified!")
 }
 
-func Login(c echo.Context) error {
+func Signin(c echo.Context) error {
 	req := new(LoginRequest)
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
@@ -182,57 +181,4 @@ func sendVerificationEmail(email, token string) error {
 	}
 	_, err := client.Emails.Send(params)
 	return err
-}
-
-func CheckUser(c echo.Context) error {
-	authHeader := c.Request().Header.Get("Authorization")
-	if authHeader == "" {
-		return c.JSON(http.StatusUnauthorized, map[string]string{
-			"error": "missing authorization header",
-		})
-	}
-
-	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-	if tokenString == authHeader {
-		return c.JSON(http.StatusUnauthorized, map[string]string{
-			"error": "invalid authorization format",
-		})
-	}
-
-	secretKey := os.Getenv("SECRET_KEY")
-
-	token, err := jwt.ParseWithClaims(tokenString, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(secretKey), nil
-	})
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"error": fmt.Sprint(err),
-		})
-	}
-
-	claims := token.Claims.(*jwt.StandardClaims)
-	userId := claims.Issuer
-
-	database, err := db.ConnectDB()
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError,
-			map[string]string{
-				"error": fmt.Sprint(err),
-			})
-	}
-	var user db.User
-	err = database.Where("id = ?", userId).First(&user).Error
-	if err != nil {
-		return c.JSON(http.StatusNotFound, map[string]string{
-			"error": fmt.Sprint(err),
-		})
-	}
-	if !user.IsVerified {
-		return c.JSON(http.StatusUnauthorized, map[string]string{
-			"error": "unauthorized",
-		})
-	}
-	return c.JSON(http.StatusOK, map[string]string{
-		"userId": user.Id,
-	})
 }

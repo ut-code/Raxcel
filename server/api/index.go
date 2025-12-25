@@ -9,21 +9,34 @@ import (
 )
 
 func SetupRouter() *echo.Echo {
-	e := echo.New()
+	router := echo.New()
 
-	e.GET("/", routes.Greet)
-	messages := e.Group("/messages")
-	messages.Use(middleware.AuthMiddleware)
-	messages.POST("", routes.ChatWithAI)
-	messages.GET("", routes.GetMessages)
-	e.GET("/user", routes.CheckUser)
-	e.POST("/register", routes.Register)
-	e.GET("/verify-email", routes.VerifyEmail)
-	e.POST("/login", routes.Login)
-	return e
+	router.GET("/", routes.Greet)
+
+	messageGroup := router.Group("/messages")
+	{
+		messageGroup.Use(middleware.AuthMiddleware)
+		messageGroup.POST("", routes.ChatWithAI)
+		messageGroup.GET("", routes.LoadChatHistory)
+	}
+
+	authGroup := router.Group("/auth")
+	{
+		authGroup.POST("/signup", routes.Signup)
+		authGroup.POST("/signin", routes.Signin)
+		authGroup.GET("/verify-email", routes.VerifyEmail)
+	}
+
+	userGroup := router.Group("/users")
+	{
+		userGroup.Use(middleware.AuthMiddleware)
+		userGroup.GET("/me", routes.GetCurrentUserId)
+	}
+
+	return router
 }
 
 func VercelHandler(w http.ResponseWriter, r *http.Request) {
-	e := SetupRouter()
-	e.ServeHTTP(w, r)
+	router := SetupRouter()
+	router.ServeHTTP(w, r)
 }
