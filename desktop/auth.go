@@ -35,7 +35,7 @@ func (a *App) Signup(email, password string) RegisterResult {
 	}
 	apiUrl := getAPIURL()
 
-	resp, err := http.Post(fmt.Sprintf("%s/signup", apiUrl), "application/json", bytes.NewReader(jsonData))
+	resp, err := http.Post(fmt.Sprintf("%s/auth/signup", apiUrl), "application/json", bytes.NewReader(jsonData))
 	if err != nil {
 		return RegisterResult{
 			Ok:      false,
@@ -96,7 +96,7 @@ func (a *App) Signin(email, password string) LoginResult {
 	}
 	apiUrl := getAPIURL()
 
-	resp, err := http.Post(fmt.Sprintf("%s/signin", apiUrl), "application/json", bytes.NewReader(jsonData))
+	resp, err := http.Post(fmt.Sprintf("%s/auth/signin", apiUrl), "application/json", bytes.NewReader(jsonData))
 	if err != nil {
 		return LoginResult{
 			Ok:      false,

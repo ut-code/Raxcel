@@ -177,7 +177,7 @@ func sendVerificationEmail(email, token string) error {
 		From:    "Raxcel <noreply@raxcel.utcode.net>",
 		To:      []string{email},
 		Subject: "Verify your account",
-		Html:    fmt.Sprintf("<p>Click the link below to verify your email</p><a href=%s/verify-email?token=%s>Click here!</a>", apiUrl, token),
+		Html:    fmt.Sprintf("<p>Click the link below to verify your email</p><a href=%s/auth/verify-email?token=%s>Click here!</a>", apiUrl, token),
 	}
 	_, err := client.Emails.Send(params)
 	return err
