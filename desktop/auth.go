@@ -7,13 +7,9 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/ut-code/Raxcel/server/types"
 	"github.com/zalando/go-keyring"
 )
-
-type RegisterRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
 
 type SignupResult struct {
 	UserId string `json:"userId"`
@@ -21,7 +17,7 @@ type SignupResult struct {
 }
 
 func (a *App) Signup(email, password string) SignupResult {
-	postData := RegisterRequest{
+	postData := types.SignupRequest{
 		Email:    email,
 		Password: password,
 	}
@@ -49,7 +45,7 @@ func (a *App) Signup(email, password string) SignupResult {
 			Error:  fmt.Sprintf("Failed to read response: %v", err),
 		}
 	}
-	var serverResponse map[string]string
+	var serverResponse types.SignupResponse
 	err = json.Unmarshal(body, &serverResponse)
 	if err != nil {
 		return SignupResult{
@@ -60,18 +56,13 @@ func (a *App) Signup(email, password string) SignupResult {
 	if resp.StatusCode != http.StatusCreated {
 		return SignupResult{
 			UserId: "",
-			Error:  serverResponse["error"],
+			Error:  serverResponse.Error,
 		}
 	}
 	return SignupResult{
-		UserId: serverResponse["userId"],
+		UserId: serverResponse.UserId,
 		Error:  "",
 	}
-}
-
-type LoginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
 }
 
 type SigninResult struct {
@@ -80,7 +71,7 @@ type SigninResult struct {
 }
 
 func (a *App) Signin(email, password string) SigninResult {
-	postData := LoginRequest{
+	postData := types.SigninRequest{
 		Email:    email,
 		Password: password,
 	}
@@ -110,7 +101,7 @@ func (a *App) Signin(email, password string) SigninResult {
 		}
 	}
 
-	var serverResponse map[string]string
+	var serverResponse types.SigninResponse
 	err = json.Unmarshal(body, &serverResponse)
 	if err != nil {
 		return SigninResult{
@@ -121,10 +112,10 @@ func (a *App) Signin(email, password string) SigninResult {
 	if resp.StatusCode != http.StatusOK {
 		return SigninResult{
 			Token: "",
-			Error: serverResponse["error"],
+			Error: serverResponse.Error,
 		}
 	}
-	token := serverResponse["token"]
+	token := serverResponse.Token
 	err = keyring.Set("Raxcel", "raxcel-user", token)
 	if err != nil {
 		return SigninResult{
@@ -164,21 +155,28 @@ func (a *App) GetCurrentUser() GetCurrentUserResult {
 			Error:  fmt.Sprint(err),
 		}
 	}
-	var serverResponse map[string]string
+	var serverResponse types.GetCurrentUserResponse
 	if err := json.Unmarshal(body, &serverResponse); err != nil {
 		return GetCurrentUserResult{
 			UserId: "",
 			Error:  fmt.Sprint(err),
 		}
 	}
-	if serverResponse["error"] != "" {
+	if serverResponse.AuthMiddlewareReturn != nil {
 		return GetCurrentUserResult{
 			UserId: "",
-			Error:  serverResponse["error"],
+			// Error:  serverResponse.AuthMiddlewareReturn.MiddlewareError, でも同じこと
+			Error: serverResponse.MiddlewareError,
+		}
+	}
+	if serverResponse.GetCurrentUserResponse.Error != "" {
+		return GetCurrentUserResult{
+			UserId: "",
+			Error:  serverResponse.Error,
 		}
 	}
 	return GetCurrentUserResult{
-		UserId: serverResponse["userId"],
+		UserId: serverResponse.UserId,
 		Error:  "",
 	}
 }

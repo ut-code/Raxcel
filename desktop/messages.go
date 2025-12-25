@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/ut-code/Raxcel/server/types"
 	"github.com/zalando/go-keyring"
 )
 
@@ -64,32 +65,41 @@ func (a *App) LoadChatHistory() LoadChatHistoryResult {
 		}
 	}
 
-	var serverResponse map[string]interface{}
+	var serverResponse types.LoadChatHistoryResponse
 	err = json.Unmarshal(body, &serverResponse)
 	if err != nil {
 		return LoadChatHistoryResult{
 			Messages: []Mesaage{},
-			Error:    fmt.Sprint(err),
+			Error:    fmt.Sprintf("Failed to parse response: %v", err),
 		}
 	}
 
-	// Parse messages array
-	var messages []Mesaage
-	if messagesData, ok := serverResponse["messages"].([]interface{}); ok {
-		for _, msgData := range messagesData {
-			if msgMap, ok := msgData.(map[string]interface{}); ok {
-				message := Mesaage{
-					Id:        msgMap["id"].(string),
-					UserId:    msgMap["userId"].(string),
-					Content:   msgMap["content"].(string),
-					Role:      msgMap["role"].(string),
-					CreatedAt: msgMap["createdAt"].(string),
-				}
-				messages = append(messages, message)
-			}
+	// Check middleware error
+	if serverResponse.AuthMiddlewareReturn != nil && serverResponse.MiddlewareError != "" {
+		return LoadChatHistoryResult{
+			Messages: []Mesaage{},
+			Error:    serverResponse.MiddlewareError,
 		}
-	} else {
-		fmt.Println("No messages found in response")
+	}
+
+	// Check handler error
+	if serverResponse.Error != "" {
+		return LoadChatHistoryResult{
+			Messages: []Mesaage{},
+			Error:    serverResponse.Error,
+		}
+	}
+
+	// Convert db.Message to Mesaage
+	messages := make([]Mesaage, len(serverResponse.Messages))
+	for i, msg := range serverResponse.Messages {
+		messages[i] = Mesaage{
+			Id:        msg.Id,
+			UserId:    msg.UserId,
+			Content:   msg.Content,
+			Role:      msg.Role,
+			CreatedAt: msg.CreatedAt.Format("2006-01-02 15:04:05"),
+		}
 	}
 
 	return LoadChatHistoryResult{
@@ -98,18 +108,13 @@ func (a *App) LoadChatHistory() LoadChatHistoryResult {
 	}
 }
 
-type ChatRequest struct {
-	Message            string `json:"message"`
-	SpreadsheetContext string `json:"spreadsheetContext,omitempty"`
-}
-
 type ChatWithAIResult struct {
 	Message string `json:"message"`
 	Error   string `json:"error"`
 }
 
 func (a *App) ChatWithAI(message string, spreadsheetContext string) ChatWithAIResult {
-	postData := ChatRequest{
+	postData := types.ChatWithAIRequest{
 		Message:            message,
 		SpreadsheetContext: spreadsheetContext,
 	}
@@ -157,18 +162,34 @@ func (a *App) ChatWithAI(message string, spreadsheetContext string) ChatWithAIRe
 			Error:   fmt.Sprint(err),
 		}
 	}
-	var serverResponse map[string]string
+
+	var serverResponse types.ChatWithAIResponse
 	err = json.Unmarshal(body, &serverResponse)
 	if err != nil {
-		fmt.Println("Unmarshal error:", err)
-		fmt.Println("Response body:", string(body))
 		return ChatWithAIResult{
 			Message: "",
-			Error:   fmt.Sprint(err),
+			Error:   fmt.Sprintf("Failed to parse response: %v", err),
 		}
 	}
+
+	// Check middleware error
+	if serverResponse.AuthMiddlewareReturn != nil && serverResponse.MiddlewareError != "" {
+		return ChatWithAIResult{
+			Message: "",
+			Error:   serverResponse.MiddlewareError,
+		}
+	}
+
+	// Check handler error
+	if serverResponse.Error != "" {
+		return ChatWithAIResult{
+			Message: "",
+			Error:   serverResponse.Error,
+		}
+	}
+
 	return ChatWithAIResult{
-		Message: serverResponse["aiMessage"],
+		Message: serverResponse.AiMessage,
 		Error:   "",
 	}
 }

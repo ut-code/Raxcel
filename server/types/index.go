@@ -5,7 +5,7 @@ import (
 	"github.com/ut-code/Raxcel/server/routes"
 )
 
-type AuthMiddlewareReturnType = middleware.AuthMiddlewareReturnType
+type AuthMiddlewareReturn = middleware.AuthMiddlewareReturn
 
 // Auth requests and responses
 type SignupRequest = routes.SignupRequest
@@ -19,16 +19,16 @@ type ChatWithAIRequest = routes.ChatWithAIRequest
 
 type ChatWithAIResponse struct {
 	routes.ChatWithAIResponse
-	*AuthMiddlewareReturnType
+	*AuthMiddlewareReturn
 }
 
 type LoadChatHistoryResponse struct {
 	routes.LoadChatHistoryResponse
-	*AuthMiddlewareReturnType
+	*AuthMiddlewareReturn
 }
 
 // User responses
 type GetCurrentUserResponse struct {
 	routes.GetCurrentUserResponse
-	*AuthMiddlewareReturnType
+	*AuthMiddlewareReturn
 }
