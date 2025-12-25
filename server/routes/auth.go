@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -19,44 +18,44 @@ import (
 	"gorm.io/gorm"
 )
 
-type RegisterRequest struct {
+type SignupRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
-type LoginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+type SignupResponse struct {
+	Error  string `json:"error,omitempty"`
+	UserId string `json:"userId,omitempty"`
 }
 
-func Register(c echo.Context) error {
-	req := new(RegisterRequest)
+func Signup(c echo.Context) error {
+	req := new(SignupRequest)
 	if err := c.Bind(req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "invalid format",
+		return c.JSON(http.StatusBadRequest, SignupResponse{
+			Error: "invalid format",
 		})
 	}
 	// validation
 	if req.Email == "" || req.Password == "" {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "email and password are required",
+		return c.JSON(http.StatusBadRequest, SignupResponse{
+			Error: "email and password are required",
 		})
 	}
 	if len(req.Password) < 8 {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "password must be at least 8 characters",
+		return c.JSON(http.StatusBadRequest, SignupResponse{
+			Error: "password must be at least 8 characters",
 		})
 	}
 	database, err := db.ConnectDB()
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"error": "failed to connect to database",
+		return c.JSON(http.StatusInternalServerError, SignupResponse{
+			Error: "failed to connect to database",
 		})
 	}
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, map[string]string{
-			"error": "failed to hash password",
+		return c.JSON(http.StatusInternalServerError, SignupResponse{
+			Error: "failed to hash password",
 		})
 	}
 	user := db.User{
@@ -67,12 +66,12 @@ func Register(c echo.Context) error {
 	}
 	if err := database.Create(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
-			return c.JSON(http.StatusConflict, map[string]string{
-				"error": "the email is already used",
+			return c.JSON(http.StatusConflict, SignupResponse{
+				Error: "the email is already used",
 			})
 		}
-		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"error": "failed to create user",
+		return c.JSON(http.StatusInternalServerError, SignupResponse{
+			Error: "failed to create user",
 		})
 	}
 	tokenString := generateSecureToken()
@@ -83,21 +82,76 @@ func Register(c echo.Context) error {
 		ExpiresAt: time.Now().Add(24 * time.Hour),
 	}
 	if err := database.Create(&token).Error; err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"error": "failed to create verification token",
+		return c.JSON(http.StatusInternalServerError, SignupResponse{
+			Error: "failed to create verification token",
 		})
 	}
 
 	if err := sendVerificationEmail(user.Email, tokenString); err != nil {
 		fmt.Println(err)
-		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"error": "failed to send verification email",
+		return c.JSON(http.StatusInternalServerError, SignupResponse{
+			Error: "failed to send verification email",
 		})
 	}
-	return c.JSON(http.StatusCreated, map[string]string{
-		"message": "user created",
-		"userId":  user.Id,
+	return c.JSON(http.StatusCreated, SignupResponse{
+		UserId: user.Id,
 	})
+}
+
+type SigninRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type SigninResponse struct {
+	Error string `json:"error,omitempty"`
+	Token string `json:"token,omitempty"`
+}
+
+func Signin(c echo.Context) error {
+	req := new(SigninRequest)
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, SigninResponse{
+			Error: "invalid request",
+		})
+	}
+	database, err := db.ConnectDB()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, SigninResponse{
+			Error: "failed to connect to database",
+		})
+	}
+	var user db.User
+	if err := database.Where("email = ?", req.Email).First(&user).Error; err != nil {
+		return c.JSON(http.StatusNotFound, SigninResponse{
+			Error: "user not found",
+		})
+	}
+	if !user.IsVerified {
+		return c.JSON(http.StatusForbidden, SigninResponse{
+			Error: "email not verified",
+		})
+	}
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
+		return c.JSON(http.StatusUnauthorized, SigninResponse{
+			Error: "invalid email or password",
+		})
+	}
+	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
+		Issuer:    user.Id,
+		ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
+	})
+	secretKey := os.Getenv("SECRET_KEY")
+	signedToken, _ := claims.SignedString([]byte(secretKey))
+	return c.JSON(http.StatusOK, SigninResponse{
+		Token: signedToken,
+	})
+}
+
+func generateSecureToken() string {
+	b := make([]byte, 32)
+	rand.Read(b)
+	return hex.EncodeToString(b)
 }
 
 func VerifyEmail(c echo.Context) error {
@@ -122,53 +176,6 @@ func VerifyEmail(c echo.Context) error {
 	return c.String(http.StatusOK, "email verified!")
 }
 
-func Login(c echo.Context) error {
-	req := new(LoginRequest)
-	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "invalid request",
-		})
-	}
-	database, err := db.ConnectDB()
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"error": "failed to connect to database",
-		})
-	}
-	var user db.User
-	if err := database.Where("email = ?", req.Email).First(&user).Error; err != nil {
-		return c.JSON(http.StatusNotFound, map[string]string{
-			"error": "user not found",
-		})
-	}
-	if !user.IsVerified {
-		return c.JSON(http.StatusForbidden, map[string]string{
-			"error": "email not verified",
-		})
-	}
-	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
-		return c.JSON(http.StatusUnauthorized, map[string]string{
-			"error": "invalid email or password",
-		})
-	}
-	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
-		Issuer:    user.Id,
-		ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
-	})
-	secretKey := os.Getenv("SECRET_KEY")
-	signedToken, _ := claims.SignedString([]byte(secretKey))
-	return c.JSON(http.StatusOK, map[string]string{
-		"message": "logged in",
-		"token":   signedToken,
-	})
-}
-
-func generateSecureToken() string {
-	b := make([]byte, 32)
-	rand.Read(b)
-	return hex.EncodeToString(b)
-}
-
 func sendVerificationEmail(email, token string) error {
 	apiKey := os.Getenv("RESEND_API_KEY")
 	apiUrl := os.Getenv("API_URL")
@@ -178,61 +185,8 @@ func sendVerificationEmail(email, token string) error {
 		From:    "Raxcel <noreply@raxcel.utcode.net>",
 		To:      []string{email},
 		Subject: "Verify your account",
-		Html:    fmt.Sprintf("<p>Click the link below to verify your email</p><a href=%s/verify-email?token=%s>Click here!</a>", apiUrl, token),
+		Html:    fmt.Sprintf("<p>Click the link below to verify your email</p><a href=%s/auth/verify-email?token=%s>Click here!</a>", apiUrl, token),
 	}
 	_, err := client.Emails.Send(params)
 	return err
-}
-
-func CheckUser(c echo.Context) error {
-	authHeader := c.Request().Header.Get("Authorization")
-	if authHeader == "" {
-		return c.JSON(http.StatusUnauthorized, map[string]string{
-			"error": "missing authorization header",
-		})
-	}
-
-	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-	if tokenString == authHeader {
-		return c.JSON(http.StatusUnauthorized, map[string]string{
-			"error": "invalid authorization format",
-		})
-	}
-
-	secretKey := os.Getenv("SECRET_KEY")
-
-	token, err := jwt.ParseWithClaims(tokenString, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(secretKey), nil
-	})
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"error": fmt.Sprint(err),
-		})
-	}
-
-	claims := token.Claims.(*jwt.StandardClaims)
-	userId := claims.Issuer
-
-	database, err := db.ConnectDB()
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError,
-			map[string]string{
-				"error": fmt.Sprint(err),
-			})
-	}
-	var user db.User
-	err = database.Where("id = ?", userId).First(&user).Error
-	if err != nil {
-		return c.JSON(http.StatusNotFound, map[string]string{
-			"error": fmt.Sprint(err),
-		})
-	}
-	if !user.IsVerified {
-		return c.JSON(http.StatusUnauthorized, map[string]string{
-			"error": "unauthorized",
-		})
-	}
-	return c.JSON(http.StatusOK, map[string]string{
-		"userId": user.Id,
-	})
 }

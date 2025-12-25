@@ -4,7 +4,7 @@
   import Toolbar from "$lib/components/Toolbar.svelte";
   import { SvelteSet } from "svelte/reactivity";
   import Chat from "$lib/components/Chat.svelte";
-  import { CheckUser } from "$lib/wailsjs/go/main/App";
+  import { GetCurrentUser } from "$lib/wailsjs/go/main/App";
   import { onMount } from "svelte";
   import { authState } from "$lib/stores/auth.svelte";
   import Sheet from "$lib/components/Sheet.svelte";
@@ -12,8 +12,8 @@
   let grid = $state<Record<string, CellType>>({});
   onMount(() => {
     const checkUser = async () => {
-      const result = await CheckUser();
-      if (result.ok) {
+      const result = await GetCurrentUser();
+      if (result.error === "") {
         authState.login();
       }
     };

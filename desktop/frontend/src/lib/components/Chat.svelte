@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { ChatWithAI, GetMessages } from "../wailsjs/go/main/App";
+  import { ChatWithAI, LoadChatHistory } from "../wailsjs/go/main/App";
   import Dialog from "$lib/components/Dialog.svelte";
   import type { Cell } from "$lib/types";
   import { gridToMarkdownTable } from "$lib/sheet";
@@ -38,14 +38,14 @@
 
   onMount(async () => {
     // Load chat history when component mounts
-    const res = await GetMessages();
-    if (res.ok && res.messages) {
-      messages = res.messages.map((msg) => ({
+    const result = await LoadChatHistory();
+    if (result.error === "") {
+      messages = result.messages.map((msg) => ({
         author: msg.role === "user" ? "user" : "ai",
         message: msg.content,
       }));
-    } else if (res.error) {
-      console.error("Failed to load messages:", res.error);
+    } else {
+      console.error("Failed to load messages:", result.error);
     }
   });
 
@@ -60,14 +60,14 @@
     // シート内容を含めるかどうかで分岐
     const spreadsheetContext = includeSheet ? gridToMarkdownTable(grid) : "";
 
-    const res = await ChatWithAI(userMessage, spreadsheetContext);
+    const result = await ChatWithAI(userMessage, spreadsheetContext);
     userMessage = "";
-    if (!res.ok) {
-      showDialog(`Error: ${res.message}`, "AI Chat Error", "error");
+    if (result.error !== "") {
+      showDialog(`Error: ${result.error}`, "AI Chat Error", "error");
     }
     const newAiMessage: Message = {
       author: "ai",
-      message: res.message,
+      message: result.message,
     };
     messages.push(newAiMessage);
     isLoading = false;

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Register } from "$lib/wailsjs/go/main/App";
+  import { Signup } from "$lib/wailsjs/go/main/App";
 
   let email = $state("");
   let password = $state("");
@@ -27,14 +27,14 @@
     isLoading = true;
     error = "";
 
-    const result = await Register(email, password);
+    const result = await Signup(email, password);
 
     isLoading = false;
 
-    if (result.ok) {
+    if (result.error === "") {
       isSent = true;
     } else {
-      error = result.message;
+      error = result.error;
     }
   }
 
