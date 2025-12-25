@@ -51,7 +51,7 @@
 
   async function handleSignOut() {
     const result = await SignOut();
-    if (result.ok) {
+    if (result.error === "") {
       authState.logout();
     } else {
       showDialog(`Sign out failed: ${result.error}`, "Sign Out Error", "error");

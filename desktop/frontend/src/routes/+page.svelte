@@ -13,7 +13,7 @@
   onMount(() => {
     const checkUser = async () => {
       const result = await GetCurrentUser();
-      if (result.ok) {
+      if (result.error === "") {
         authState.login();
       }
     };

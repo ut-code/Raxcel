@@ -1,36 +1,34 @@
 export namespace main {
 	
-	export class ChatResult {
-	    ok: boolean;
+	export class ChatWithAIResult {
 	    message: string;
+	    error: string;
 	
 	    static createFrom(source: any = {}) {
-	        return new ChatResult(source);
+	        return new ChatWithAIResult(source);
 	    }
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.ok = source["ok"];
 	        this.message = source["message"];
+	        this.error = source["error"];
 	    }
 	}
-	export class CheckResult {
-	    ok: boolean;
-	    userId?: string;
-	    error?: string;
+	export class GetCurrentUserResult {
+	    userId: string;
+	    error: string;
 	
 	    static createFrom(source: any = {}) {
-	        return new CheckResult(source);
+	        return new GetCurrentUserResult(source);
 	    }
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.ok = source["ok"];
 	        this.userId = source["userId"];
 	        this.error = source["error"];
 	    }
 	}
-	export class MessageItem {
+	export class Mesaage {
 	    id: string;
 	    userId: string;
 	    content: string;
@@ -38,7 +36,7 @@ export namespace main {
 	    createdAt: string;
 	
 	    static createFrom(source: any = {}) {
-	        return new MessageItem(source);
+	        return new Mesaage(source);
 	    }
 	
 	    constructor(source: any = {}) {
@@ -50,19 +48,17 @@ export namespace main {
 	        this.createdAt = source["createdAt"];
 	    }
 	}
-	export class GetMessagesResult {
-	    ok: boolean;
-	    messages: MessageItem[];
-	    error?: string;
+	export class LoadChatHistoryResult {
+	    messages: Mesaage[];
+	    error: string;
 	
 	    static createFrom(source: any = {}) {
-	        return new GetMessagesResult(source);
+	        return new LoadChatHistoryResult(source);
 	    }
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.ok = source["ok"];
-	        this.messages = this.convertValues(source["messages"], MessageItem);
+	        this.messages = this.convertValues(source["messages"], Mesaage);
 	        this.error = source["error"];
 	    }
 	
@@ -84,42 +80,9 @@ export namespace main {
 		    return a;
 		}
 	}
-	export class LoginResult {
-	    ok: boolean;
-	    message: string;
-	    token?: string;
 	
-	    static createFrom(source: any = {}) {
-	        return new LoginResult(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.ok = source["ok"];
-	        this.message = source["message"];
-	        this.token = source["token"];
-	    }
-	}
-	
-	export class RegisterResult {
-	    ok: boolean;
-	    message: string;
-	    userId?: string;
-	
-	    static createFrom(source: any = {}) {
-	        return new RegisterResult(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.ok = source["ok"];
-	        this.message = source["message"];
-	        this.userId = source["userId"];
-	    }
-	}
 	export class SignOutResult {
-	    ok: boolean;
-	    error?: string;
+	    error: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new SignOutResult(source);
@@ -127,7 +90,34 @@ export namespace main {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.ok = source["ok"];
+	        this.error = source["error"];
+	    }
+	}
+	export class SigninResult {
+	    token: string;
+	    error: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new SigninResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.token = source["token"];
+	        this.error = source["error"];
+	    }
+	}
+	export class SignupResult {
+	    userId: string;
+	    error: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new SignupResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.userId = source["userId"];
 	        this.error = source["error"];
 	    }
 	}

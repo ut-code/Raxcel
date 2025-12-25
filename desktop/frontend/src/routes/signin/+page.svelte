@@ -20,10 +20,10 @@
 
     isLoading = false;
 
-    if (result.ok) {
+    if (result.error === "") {
       authState.login();
     } else {
-      error = result.message;
+      error = result.error;
     }
   }
 

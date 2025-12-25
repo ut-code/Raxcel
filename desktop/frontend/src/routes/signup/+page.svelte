@@ -31,10 +31,10 @@
 
     isLoading = false;
 
-    if (result.ok) {
+    if (result.error === "") {
       isSent = true;
     } else {
-      error = result.message;
+      error = result.error;
     }
   }
 
